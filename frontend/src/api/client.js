@@ -1,6 +1,11 @@
 // API Client with automatic CSRF token injection and credentials support
 
-const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+const RAW_API_URL = import.meta.env.VITE_API_URL || '';
+const API_BASE = (
+  RAW_API_URL && !RAW_API_URL.includes('your-backend')
+    ? RAW_API_URL
+    : (import.meta.env.PROD ? 'https://livebid-ti6v.onrender.com' : '')
+).replace(/\/$/, '');
 
 export function getFullUrl(endpoint) {
   if (!endpoint) return '';

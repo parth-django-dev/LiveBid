@@ -35,11 +35,16 @@ export function useAuctionSocket(itemId, { onBidUpdate, onError, onAuctionEnded 
 
     // Build WebSocket URL matching current origin, VITE_WS_URL, or derived from VITE_API_URL
     let wsUrl;
-    if (import.meta.env.VITE_WS_URL) {
-      const base = import.meta.env.VITE_WS_URL.replace(/\/$/, '');
-      wsUrl = `${base}/ws/auction/${itemId}/`;
-    } else if (import.meta.env.VITE_API_URL) {
-      const base = import.meta.env.VITE_API_URL.replace(/\/$/, '').replace(/^http/, 'ws');
+    let wsBase = import.meta.env.VITE_WS_URL || (import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/^http/, 'ws') : null);
+    if (wsBase && wsBase.includes('your-backend')) {
+      wsBase = 'wss://livebid-ti6v.onrender.com';
+    }
+    if (!wsBase && import.meta.env.PROD) {
+      wsBase = 'wss://livebid-ti6v.onrender.com';
+    }
+
+    if (wsBase) {
+      const base = wsBase.replace(/\/$/, '');
       wsUrl = `${base}/ws/auction/${itemId}/`;
     } else {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
