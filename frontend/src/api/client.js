@@ -1,11 +1,27 @@
 // API Client with automatic CSRF token injection and credentials support
 
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+
+export function getFullUrl(endpoint) {
+  if (!endpoint) return '';
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+    return endpoint;
+  }
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${API_BASE}${cleanEndpoint}`;
+}
+
+export function getImageUrl(path) {
+  if (!path) return null;
+  return getFullUrl(path);
+}
+
 let cachedCsrfToken = null;
 
 export async function getCsrfToken() {
   if (cachedCsrfToken) return cachedCsrfToken;
   try {
-    const res = await fetch('/api/csrf-token/', { credentials: 'include' });
+    const res = await fetch(getFullUrl('/api/csrf-token/'), { credentials: 'include' });
     const data = await res.json();
     cachedCsrfToken = data.csrfToken;
     return cachedCsrfToken;
@@ -30,7 +46,7 @@ export async function apiRequest(endpoint, options = {}) {
     }
   }
 
-  const response = await fetch(endpoint, {
+  const response = await fetch(getFullUrl(endpoint), {
     credentials: 'include',
     ...options,
     headers,

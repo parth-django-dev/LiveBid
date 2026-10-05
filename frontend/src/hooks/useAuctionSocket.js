@@ -5,6 +5,7 @@ export function useAuctionSocket(itemId, { onBidUpdate, onError, onAuctionEnded 
   const [lastError, setLastError] = useState(null);
   const socketRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
+  const pingIntervalRef = useRef(null);
   const isUnmountedRef = useRef(false);
 
   // Keep callback refs updated without re-triggering connect
@@ -25,13 +26,25 @@ export function useAuctionSocket(itemId, { onBidUpdate, onError, onAuctionEnded 
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
     }
+    if (pingIntervalRef.current) {
+      clearInterval(pingIntervalRef.current);
+    }
 
     setStatus('connecting');
     setLastError(null);
 
-    // Build WebSocket URL matching current origin (Vite dev server proxies /ws to Daphne)
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws/auction/${itemId}/`;
+    // Build WebSocket URL matching current origin, VITE_WS_URL, or derived from VITE_API_URL
+    let wsUrl;
+    if (import.meta.env.VITE_WS_URL) {
+      const base = import.meta.env.VITE_WS_URL.replace(/\/$/, '');
+      wsUrl = `${base}/ws/auction/${itemId}/`;
+    } else if (import.meta.env.VITE_API_URL) {
+      const base = import.meta.env.VITE_API_URL.replace(/\/$/, '').replace(/^http/, 'ws');
+      wsUrl = `${base}/ws/auction/${itemId}/`;
+    } else {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      wsUrl = `${protocol}//${window.location.host}/ws/auction/${itemId}/`;
+    }
 
     try {
       const ws = new WebSocket(wsUrl);
@@ -44,13 +57,26 @@ export function useAuctionSocket(itemId, { onBidUpdate, onError, onAuctionEnded 
         }
         setStatus('connected');
         setLastError(null);
+
+        // Keep-alive heartbeat every 25 seconds to prevent PgBouncer / proxy timeout
+        pingIntervalRef.current = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            try {
+              ws.send(JSON.stringify({ type: 'ping' }));
+            } catch (e) {
+              // ignore
+            }
+          }
+        }, 25000);
       };
 
       ws.onmessage = (event) => {
         if (isUnmountedRef.current) return;
         try {
           const data = JSON.parse(event.data);
-          if (data.type === 'bid_update') {
+          if (data.type === 'pong') {
+            return; // keep-alive response
+          } else if (data.type === 'bid_update') {
             onBidUpdateRef.current?.(data);
           } else if (data.type === 'auction_ended') {
             onAuctionEndedRef.current?.(data);
@@ -70,17 +96,19 @@ export function useAuctionSocket(itemId, { onBidUpdate, onError, onAuctionEnded 
       };
 
       ws.onclose = (event) => {
+        if (pingIntervalRef.current) {
+          clearInterval(pingIntervalRef.current);
+        }
         if (isUnmountedRef.current) return;
         setStatus('disconnected');
-        
-        // Auto-reconnect after 3 seconds if closed cleanly or unexpectedly
-        if (!event.wasClean) {
-          reconnectTimeoutRef.current = setTimeout(() => {
-            if (!isUnmountedRef.current) {
-              connect();
-            }
-          }, 3000);
-        }
+
+        // Automatically reconnect after 1.5 seconds if component is still active
+        if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = setTimeout(() => {
+          if (!isUnmountedRef.current) {
+            connect();
+          }
+        }, 1500);
       };
     } catch (err) {
       setStatus('error');
@@ -97,15 +125,15 @@ export function useAuctionSocket(itemId, { onBidUpdate, onError, onAuctionEnded 
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);
       }
+      if (pingIntervalRef.current) {
+        clearInterval(pingIntervalRef.current);
+      }
       const ws = socketRef.current;
       if (ws) {
-        // Detach handlers so no error logs fire during intentional unmount
         ws.onerror = null;
         ws.onclose = null;
         ws.onmessage = null;
 
-        // If socket is still connecting, waiting for onopen before calling close
-        // prevents Chromium from logging "WebSocket is closed before the connection is established"
         if (ws.readyState === WebSocket.CONNECTING) {
           ws.onopen = () => {
             try {
@@ -128,7 +156,9 @@ export function useAuctionSocket(itemId, { onBidUpdate, onError, onAuctionEnded 
 
   const sendBid = useCallback((amount) => {
     if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
-      const msg = 'Not connected to auction server.';
+      // Instantly trigger reconnect attempt
+      connect();
+      const msg = 'Connecting to auction server... Please retry in a moment.';
       setLastError(msg);
       onErrorRef.current?.(msg);
       return false;
@@ -146,7 +176,7 @@ export function useAuctionSocket(itemId, { onBidUpdate, onError, onAuctionEnded 
       onErrorRef.current?.(err.message);
       return false;
     }
-  }, []);
+  }, [connect]);
 
   return {
     status,

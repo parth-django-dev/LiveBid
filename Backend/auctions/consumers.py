@@ -1,3 +1,4 @@
+import os
 import json
 from datetime import timedelta
 from django.utils import timezone
@@ -7,7 +8,8 @@ from channels.db import database_sync_to_async
 from .models import AuctionItem, Bid
 
 # Shared connection pool for high concurrency
-REDIS_POOL = aioredis.ConnectionPool.from_url("redis://127.0.0.1:6379/0", max_connections=100)
+REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
+REDIS_POOL = aioredis.ConnectionPool.from_url(REDIS_URL, max_connections=100, socket_timeout=None)
 
 def get_minimum_step(current_price):
     price = float(current_price)
@@ -84,11 +86,20 @@ def check_and_extend_auction(item_id):
 
 @database_sync_to_async
 def record_bid(user, item_id, amount):
-    item = AuctionItem.objects.get(pk=item_id)
-    new_bid = Bid.objects.create(user=user, item=item, amount=amount)
-    item.current_bid = amount
-    item.save(update_fields=['current_bid'])
-    return new_bid
+    try:
+        item = AuctionItem.objects.get(pk=item_id)
+        new_bid = Bid.objects.create(user=user, item=item, amount=amount)
+        item.current_bid = amount
+        item.save(update_fields=['current_bid'])
+        return new_bid, None
+    except Exception as e:
+        err_msg = str(e)
+        if hasattr(e, 'message_dict'):
+            err_msg = '; '.join([', '.join(v) for v in e.message_dict.values()])
+        elif hasattr(e, 'messages'):
+            err_msg = '; '.join(e.messages)
+        print(f"Error recording bid for item {item_id}: {err_msg}")
+        return None, err_msg
 
 class AuctionConsumer(AsyncWebsocketConsumer):
     LUA_ATOMIC_BID = """
@@ -118,47 +129,56 @@ class AuctionConsumer(AsyncWebsocketConsumer):
     """
 
     async def connect(self):
-        self.item_id = self.scope['url_route']['kwargs']['item_id']
-        self.group_name = f'auction_{self.item_id}'
-        self.redis_bid_key = f'auction:{self.item_id}:highest_bid'
-        self.redis_bidder_key = f'auction:{self.item_id}:highest_bidder'
-        self.redis = aioredis.Redis(connection_pool=REDIS_POOL)
+        try:
+            self.item_id = self.scope['url_route']['kwargs']['item_id']
+            self.group_name = f'auction_{self.item_id}'
+            self.redis_bid_key = f'auction:{self.item_id}:highest_bid'
+            self.redis_bidder_key = f'auction:{self.item_id}:highest_bidder'
+            self.redis = aioredis.Redis(connection_pool=REDIS_POOL)
 
-        # Verify item exists
-        item_info = await get_auction_info(self.item_id)
-        if item_info is None:
+            # Verify item exists
+            item_info = await get_auction_info(self.item_id)
+            if item_info is None:
+                await self.close()
+                return
+
+            if item_info['is_active']:
+                # Sync Redis cache with DB state if needed
+                cached_bid = await self.redis.get(self.redis_bid_key)
+                if cached_bid is None or float(cached_bid) < float(item_info['current_bid']):
+                    await self.redis.set(self.redis_bid_key, str(item_info['current_bid']))
+
+                cached_bidder = await self.redis.get(self.redis_bidder_key)
+                if item_info.get('highest_bidder'):
+                    if cached_bidder is None or cached_bid is None or float(cached_bid) < float(item_info['current_bid']):
+                        await self.redis.set(self.redis_bidder_key, item_info['highest_bidder'])
+
+            await self.channel_layer.group_add(
+                self.group_name,
+                self.channel_name
+            )
+            await self.accept()
+
+            # If already finalized, push ended state
+            if not item_info['is_live']:
+                await self.send(text_data=json.dumps({
+                    'type': 'auction_ended',
+                    'item_id': self.item_id,
+                    'winner': item_info.get('winner'),
+                    'winning_bid': item_info.get('current_bid'),
+                }))
+        except Exception as e:
+            print(f"Error in consumer connect: {e}")
             await self.close()
-            return
-
-        if item_info['is_active']:
-            cached_bid = await self.redis.get(self.redis_bid_key)
-            if cached_bid is None:
-                await self.redis.set(self.redis_bid_key, str(item_info['current_bid']))
-
-            cached_bidder = await self.redis.get(self.redis_bidder_key)
-            if cached_bidder is None and item_info.get('highest_bidder'):
-                await self.redis.set(self.redis_bidder_key, item_info['highest_bidder'])
-
-        await self.channel_layer.group_add(
-            self.group_name,
-            self.channel_name
-        )
-        await self.accept()
-
-        # If already finalized, push ended state
-        if not item_info['is_live']:
-            await self.send(text_data=json.dumps({
-                'type': 'auction_ended',
-                'item_id': self.item_id,
-                'winner': item_info.get('winner'),
-                'winning_bid': item_info.get('current_bid'),
-            }))
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            self.group_name,
-            self.channel_name
-        )
+        try:
+            await self.channel_layer.group_discard(
+                self.group_name,
+                self.channel_name
+            )
+        except Exception as e:
+            print(f"Error in consumer disconnect: {e}")
 
     async def receive(self, text_data):
         user = self.scope.get('user')
@@ -178,6 +198,10 @@ class AuctionConsumer(AsyncWebsocketConsumer):
             }))
             return
 
+        if data.get('type') == 'ping':
+            await self.send(text_data=json.dumps({'type': 'pong'}))
+            return
+
         if data.get('type') == 'bid':
             try:
                 amount = float(data.get('amount', 0))
@@ -188,95 +212,108 @@ class AuctionConsumer(AsyncWebsocketConsumer):
                 }))
                 return
 
-            item_info = await get_auction_info(self.item_id)
-            if not item_info:
-                await self.send(text_data=json.dumps({
-                    'type': 'error',
-                    'message': 'Auction item not found.'
-                }))
-                return
+            try:
+                item_info = await get_auction_info(self.item_id)
+                if not item_info:
+                    await self.send(text_data=json.dumps({
+                        'type': 'error',
+                        'message': 'Auction item not found.'
+                    }))
+                    return
 
-            # Check if user is seller (Shill bidding prevention)
-            if item_info.get('seller') and user.username == item_info.get('seller'):
-                await self.send(text_data=json.dumps({
-                    'type': 'error',
-                    'message': 'You are the seller of this auction and cannot bid on your own listing.'
-                }))
-                return
+                # Check if user is seller (Shill bidding prevention)
+                if item_info.get('seller') and user.username == item_info.get('seller'):
+                    await self.send(text_data=json.dumps({
+                        'type': 'error',
+                        'message': 'You are the seller of this auction and cannot bid on your own listing.'
+                    }))
+                    return
 
-            # Check if auction has expired
-            now = timezone.now()
-            if not item_info.get('is_live') or item_info.get('end_time_dt') <= now:
-                fin = await finalize_expired_auction(self.item_id)
-                await self.channel_layer.group_send(
-                    self.group_name,
-                    {
-                        'type': 'auction_ended',
-                        'item_id': self.item_id,
-                        'winner': fin.get('winner') if fin else item_info.get('highest_bidder'),
-                        'winning_bid': fin.get('winning_bid') if fin else item_info.get('current_bid'),
-                    }
+                # Check if auction has expired
+                now = timezone.now()
+                if not item_info.get('is_live') or item_info.get('end_time_dt') <= now:
+                    fin = await finalize_expired_auction(self.item_id)
+                    await self.channel_layer.group_send(
+                        self.group_name,
+                        {
+                            'type': 'auction_ended',
+                            'item_id': self.item_id,
+                            'winner': fin.get('winner') if fin else item_info.get('highest_bidder'),
+                            'winning_bid': fin.get('winning_bid') if fin else item_info.get('current_bid'),
+                        }
+                    )
+                    await self.send(text_data=json.dumps({
+                        'type': 'error',
+                        'message': 'This auction has already ended.'
+                    }))
+                    return
+
+                # Check proportional minimum step requirement
+                current_highest = float(item_info['current_bid'])
+                min_step = get_minimum_step(current_highest)
+                if amount < current_highest + min_step:
+                    await self.send(text_data=json.dumps({
+                        'type': 'error',
+                        'message': f'Minimum increment is ₹{min_step:,.0f}. Bid must be at least ₹{current_highest + min_step:,.0f}.'
+                    }))
+                    return
+
+                # Atomically evaluate bid against Redis in-memory highest bid and leader
+                result = await self.redis.eval(
+                    self.LUA_ATOMIC_BID,
+                    2,
+                    self.redis_bid_key,
+                    self.redis_bidder_key,
+                    str(amount),
+                    user.username
                 )
+
+                if result == -1:
+                    await self.send(text_data=json.dumps({
+                        'type': 'error',
+                        'message': 'You are currently the highest bidder. You cannot outbid yourself!'
+                    }))
+                    return
+                elif result == 1:
+                    # Save approved bid to PostgreSQL safely
+                    new_bid, db_err = await record_bid(user, self.item_id, amount)
+                    if db_err:
+                        await self.send(text_data=json.dumps({
+                            'type': 'error',
+                            'message': db_err
+                        }))
+                        return
+
+                    # Anti-Sniping (Soft Close check)
+                    new_end_time = await check_and_extend_auction(self.item_id)
+                    extended = bool(new_end_time)
+
+                    # Broadcast live update to all connected clients in the room
+                    await self.channel_layer.group_send(
+                        self.group_name,
+                        {
+                            'type': 'bid_update',
+                            'user': user.username,
+                            'item_id': self.item_id,
+                            'amount': str(amount),
+                            'highest_bidder': user.username,
+                            'end_time': new_end_time if extended else item_info['end_time'],
+                            'extended': extended
+                        }
+                    )
+                else:
+                    current_val = await self.redis.get(self.redis_bid_key)
+                    if isinstance(current_val, bytes):
+                        current_val = current_val.decode('utf-8')
+                    await self.send(text_data=json.dumps({
+                        'type': 'error',
+                        'message': f'Bid too low. Highest bid is currently ₹{float(current_val):,.0f}.'
+                    }))
+            except Exception as e:
+                print(f"Error handling bid in consumer: {e}")
                 await self.send(text_data=json.dumps({
                     'type': 'error',
-                    'message': 'This auction has already ended.'
-                }))
-                return
-
-            # Check proportional minimum step requirement
-            current_highest = float(item_info['current_bid'])
-            min_step = get_minimum_step(current_highest)
-            if amount < current_highest + min_step:
-                await self.send(text_data=json.dumps({
-                    'type': 'error',
-                    'message': f'Minimum increment is ₹{min_step:,.0f}. Bid must be at least ₹{current_highest + min_step:,.0f}.'
-                }))
-                return
-
-            # Atomically evaluate bid against Redis in-memory highest bid and leader
-            result = await self.redis.eval(
-                self.LUA_ATOMIC_BID,
-                2,
-                self.redis_bid_key,
-                self.redis_bidder_key,
-                str(amount),
-                user.username
-            )
-
-            if result == -1:
-                await self.send(text_data=json.dumps({
-                    'type': 'error',
-                    'message': 'You are currently the highest bidder. You cannot outbid yourself!'
-                }))
-                return
-            elif result == 1:
-                # Save approved bid to PostgreSQL
-                await record_bid(user, self.item_id, amount)
-
-                # Anti-Sniping (Soft Close check)
-                new_end_time = await check_and_extend_auction(self.item_id)
-                extended = bool(new_end_time)
-
-                # Broadcast live update to all connected clients in the room
-                await self.channel_layer.group_send(
-                    self.group_name,
-                    {
-                        'type': 'bid_update',
-                        'user': user.username,
-                        'item_id': self.item_id,
-                        'amount': str(amount),
-                        'highest_bidder': user.username,
-                        'end_time': new_end_time if extended else item_info['end_time'],
-                        'extended': extended
-                    }
-                )
-            else:
-                current_val = await self.redis.get(self.redis_bid_key)
-                if isinstance(current_val, bytes):
-                    current_val = current_val.decode('utf-8')
-                await self.send(text_data=json.dumps({
-                    'type': 'error',
-                    'message': f'Bid too low. Highest bid is currently ₹{float(current_val):,.0f}.'
+                    'message': 'Failed to process bid. Please try again.'
                 }))
 
     async def bid_update(self, event):

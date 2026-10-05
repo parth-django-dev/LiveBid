@@ -12,6 +12,9 @@ celery = "*"
 django-environ = "*"
 daphne = "*"
 redis = "*"
+django-cors-headers = "*"
+whitenoise = "*"
+dj-database-url = "*"
 
 [dev-packages]
 
