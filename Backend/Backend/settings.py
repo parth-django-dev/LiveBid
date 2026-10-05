@@ -194,8 +194,18 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Celery configuration
-CELERY_BROKER_URL = env('CELERY_BROKER_URL', default=os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0'))
-CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default=os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0'))
+is_on_render = bool(os.getenv("RENDER"))
+_celery_broker = env('CELERY_BROKER_URL', default=os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0'))
+_celery_backend = env('CELERY_RESULT_BACKEND', default=os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0'))
+
+if is_on_render and os.getenv('REDIS_URL'):
+    if '127.0.0.1' in _celery_broker or 'localhost' in _celery_broker:
+        _celery_broker = os.getenv('REDIS_URL')
+    if '127.0.0.1' in _celery_backend or 'localhost' in _celery_backend:
+        _celery_backend = os.getenv('REDIS_URL')
+
+CELERY_BROKER_URL = _celery_broker
+CELERY_RESULT_BACKEND = _celery_backend
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
