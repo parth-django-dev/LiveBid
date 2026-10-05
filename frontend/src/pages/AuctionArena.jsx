@@ -358,21 +358,45 @@ export function AuctionArena({ itemId: propItemId, onBack: propOnBack }) {
           <div className="glass-card" style={{ padding: '32px' }}>
             {item.image && (
               <div style={{
+                position: 'relative',
                 width: '100%',
-                height: '320px',
+                height: '340px',
                 borderRadius: 'var(--radius-md)',
                 overflow: 'hidden',
                 marginBottom: '24px',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
-                background: 'linear-gradient(135deg, #1e1b4b 0%, #0b0f19 100%)',
+                background: 'radial-gradient(circle at center, rgba(30, 27, 75, 0.7) 0%, #0b0f19 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}>
+                <img
+                  src={item.image}
+                  alt=""
+                  aria-hidden="true"
+                  style={{
+                    position: 'absolute',
+                    inset: '-20px',
+                    width: 'calc(100% + 40px)',
+                    height: 'calc(100% + 40px)',
+                    objectFit: 'cover',
+                    filter: 'blur(24px) brightness(0.25) saturate(1.3)',
+                    transform: 'scale(1.15)',
+                    pointerEvents: 'none',
+                  }}
+                />
                 <img
                   src={item.image}
                   alt={item.title}
                   style={{
+                    position: 'relative',
+                    zIndex: 2,
                     width: '100%',
                     height: '100%',
-                    objectFit: 'cover',
+                    objectFit: 'contain',
+                    padding: '16px',
+                    filter: 'drop-shadow(0 8px 24px rgba(0, 0, 0, 0.5))',
+                    transition: 'transform 0.4s ease',
                   }}
                 />
               </div>

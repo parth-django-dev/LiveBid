@@ -197,15 +197,42 @@ export function CreateAuctionModal({ isOpen, onClose, onItemCreated }) {
             {imagePreview ? (
               <div style={{
                 position: 'relative',
-                height: '200px',
+                height: '220px',
                 borderRadius: 'var(--radius-md)',
                 overflow: 'hidden',
                 border: '1px solid var(--border-glow)',
+                background: 'radial-gradient(circle at center, rgba(30, 27, 75, 0.7) 0%, #0b0f19 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}>
                 <img
                   src={imagePreview}
+                  alt=""
+                  aria-hidden="true"
+                  style={{
+                    position: 'absolute',
+                    inset: '-15px',
+                    width: 'calc(100% + 30px)',
+                    height: 'calc(100% + 30px)',
+                    objectFit: 'cover',
+                    filter: 'blur(20px) brightness(0.25) saturate(1.3)',
+                    transform: 'scale(1.1)',
+                    pointerEvents: 'none',
+                  }}
+                />
+                <img
+                  src={imagePreview}
                   alt="Preview"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  style={{
+                    position: 'relative',
+                    zIndex: 2,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    padding: '12px',
+                    filter: 'drop-shadow(0 4px 14px rgba(0, 0, 0, 0.5))',
+                  }}
                 />
                 <button
                   type="button"
@@ -214,6 +241,7 @@ export function CreateAuctionModal({ isOpen, onClose, onItemCreated }) {
                     position: 'absolute',
                     top: '10px',
                     right: '10px',
+                    zIndex: 3,
                     background: 'rgba(0,0,0,0.7)',
                     color: '#fff',
                     border: 'none',

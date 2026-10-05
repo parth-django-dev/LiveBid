@@ -163,16 +163,37 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
             </div>
 
             {featured.image ? (
-              <img
-                src={featured.image}
-                alt={featured.title}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  transition: 'transform 0.4s ease',
-                }}
-              />
+              <>
+                <img
+                  src={featured.image}
+                  alt=""
+                  aria-hidden="true"
+                  style={{
+                    position: 'absolute',
+                    inset: '-20px',
+                    width: 'calc(100% + 40px)',
+                    height: 'calc(100% + 40px)',
+                    objectFit: 'cover',
+                    filter: 'blur(24px) brightness(0.25) saturate(1.3)',
+                    transform: 'scale(1.15)',
+                    pointerEvents: 'none',
+                  }}
+                />
+                <img
+                  src={featured.image}
+                  alt={featured.title}
+                  style={{
+                    position: 'relative',
+                    zIndex: 2,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    padding: '16px',
+                    filter: 'drop-shadow(0 8px 24px rgba(0, 0, 0, 0.5))',
+                    transition: 'transform 0.4s ease',
+                  }}
+                />
+              </>
             ) : (
               <Gavel size={96} color="rgba(99, 102, 241, 0.35)" />
             )}
@@ -408,8 +429,8 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
               >
                 {/* Item Card Banner */}
                 <div style={{
-                  height: '200px',
-                  background: 'linear-gradient(135deg, #1e1b4b 0%, #0b0f19 100%)',
+                  height: '220px',
+                  background: 'radial-gradient(circle at center, rgba(30, 27, 75, 0.7) 0%, #0b0f19 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -417,7 +438,7 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
                   overflow: 'hidden',
                 }}>
                   {/* Status Badges - Strictly Consistent */}
-                  <div style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 2 }}>
+                  <div style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 3 }}>
                     {isLive ? (
                       <span className="badge-live">
                         <span className="dot" /> LIVE
@@ -429,7 +450,7 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
                     )}
                   </div>
 
-                  <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 2 }}>
+                  <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 3 }}>
                     {isLive ? (
                       <CountdownTimer endTime={item.end_time} compact />
                     ) : (
@@ -440,16 +461,39 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
                   </div>
 
                   {item.image ? (
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        transition: 'transform 0.3s ease',
-                      }}
-                    />
+                    <>
+                      {/* Ambient blurred backdrop so letterboxing matches item colors */}
+                      <img
+                        src={item.image}
+                        alt=""
+                        aria-hidden="true"
+                        style={{
+                          position: 'absolute',
+                          inset: '-15px',
+                          width: 'calc(100% + 30px)',
+                          height: 'calc(100% + 30px)',
+                          objectFit: 'cover',
+                          filter: 'blur(20px) brightness(0.25) saturate(1.3)',
+                          transform: 'scale(1.1)',
+                          pointerEvents: 'none',
+                        }}
+                      />
+                      {/* Fully visible item that fits perfectly without cropping */}
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        style={{
+                          position: 'relative',
+                          zIndex: 2,
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'contain',
+                          padding: '12px',
+                          filter: 'drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45))',
+                          transition: 'transform 0.3s ease',
+                        }}
+                      />
+                    </>
                   ) : (
                     <Gavel size={56} color="rgba(99, 102, 241, 0.3)" />
                   )}

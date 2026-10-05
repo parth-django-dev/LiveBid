@@ -280,16 +280,37 @@ export function Dashboard({ onSelectAuction, onOpenCreateModal }) {
                   </div>
 
                   {item.image ? (
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        transition: 'transform 0.3s ease',
-                      }}
-                    />
+                    <>
+                      <img
+                        src={item.image}
+                        alt=""
+                        aria-hidden="true"
+                        style={{
+                          position: 'absolute',
+                          inset: '-15px',
+                          width: 'calc(100% + 30px)',
+                          height: 'calc(100% + 30px)',
+                          objectFit: 'cover',
+                          filter: 'blur(20px) brightness(0.25) saturate(1.3)',
+                          transform: 'scale(1.1)',
+                          pointerEvents: 'none',
+                        }}
+                      />
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        style={{
+                          position: 'relative',
+                          zIndex: 2,
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'contain',
+                          padding: '10px',
+                          filter: 'drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45))',
+                          transition: 'transform 0.3s ease',
+                        }}
+                      />
+                    </>
                   ) : (
                     <Gavel size={64} color="rgba(99, 102, 241, 0.3)" />
                   )}
