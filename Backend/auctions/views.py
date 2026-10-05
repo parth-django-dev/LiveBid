@@ -333,8 +333,16 @@ def register_user(request):
     except DjangoValidationError as e:
         return JsonResponse({'error': ' '.join(e.messages)}, status=400)
 
-    User.objects.create_user(username=username, email=email, password=password)
-    return JsonResponse({'message': 'User registered successfully'}, status=201)
+    user = User.objects.create_user(username=username, email=email, password=password)
+    login(request, user)
+    return JsonResponse({
+        'message': 'User registered successfully',
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email
+        }
+    }, status=201)
 
 @csrf_exempt
 def login_user(request):
