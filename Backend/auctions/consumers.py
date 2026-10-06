@@ -9,7 +9,13 @@ from .models import AuctionItem, Bid
 
 # Shared connection pool for high concurrency
 REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
-REDIS_POOL = aioredis.ConnectionPool.from_url(REDIS_URL, max_connections=100, socket_timeout=None)
+REDIS_POOL = aioredis.ConnectionPool.from_url(
+    REDIS_URL,
+    max_connections=100,
+    socket_timeout=30,
+    health_check_interval=30,
+    retry_on_timeout=True,
+)
 
 def get_minimum_step(current_price):
     price = float(current_price)
@@ -143,15 +149,18 @@ class AuctionConsumer(AsyncWebsocketConsumer):
                 return
 
             if item_info['is_active']:
-                # Sync Redis cache with DB state if needed
-                cached_bid = await self.redis.get(self.redis_bid_key)
-                if cached_bid is None or float(cached_bid) < float(item_info['current_bid']):
-                    await self.redis.set(self.redis_bid_key, str(item_info['current_bid']))
+                try:
+                    # Sync Redis cache with DB state if needed
+                    cached_bid = await self.redis.get(self.redis_bid_key)
+                    if cached_bid is None or float(cached_bid) < float(item_info['current_bid']):
+                        await self.redis.set(self.redis_bid_key, str(item_info['current_bid']))
 
-                cached_bidder = await self.redis.get(self.redis_bidder_key)
-                if item_info.get('highest_bidder'):
-                    if cached_bidder is None or cached_bid is None or float(cached_bid) < float(item_info['current_bid']):
-                        await self.redis.set(self.redis_bidder_key, item_info['highest_bidder'])
+                    cached_bidder = await self.redis.get(self.redis_bidder_key)
+                    if item_info.get('highest_bidder'):
+                        if cached_bidder is None or cached_bid is None or float(cached_bid) < float(item_info['current_bid']):
+                            await self.redis.set(self.redis_bidder_key, item_info['highest_bidder'])
+                except Exception as cache_err:
+                    print(f"Warning: Redis cache sync skipped: {cache_err}")
 
             await self.channel_layer.group_add(
                 self.group_name,

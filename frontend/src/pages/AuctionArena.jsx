@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, Zap, Shield, Trophy, AlertTriangle, 
   Clock, TrendingUp, User, Wifi, WifiOff, CheckCircle2,
-  Volume2, VolumeX, Flame 
+  Volume2, VolumeX, Flame, Gavel 
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { api } from '../api/client';

@@ -99,8 +99,12 @@ if REDIS_URL:
                     {
                         "address": REDIS_URL,
                         "health_check_interval": 30,
+                        "socket_timeout": 30,
+                        "retry_on_timeout": True,
                     }
                 ],
+                "capacity": 1500,
+                "expiry": 60,
             },
         },
     }
