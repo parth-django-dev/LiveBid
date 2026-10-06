@@ -438,9 +438,26 @@ export function AuctionArena({ itemId: propItemId, onBack: propOnBack }) {
               />
             </div>
 
-            <h1 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '12px' }}>
+            <h1 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '8px' }}>
               {item.title}
             </h1>
+
+            {/* Seller Lister Attribution */}
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 14px',
+              borderRadius: 'var(--radius-full)',
+              background: 'rgba(99, 102, 241, 0.12)',
+              border: '1px solid rgba(99, 102, 241, 0.3)',
+              fontSize: '0.85rem',
+              color: 'var(--text-dim)',
+              marginBottom: '18px',
+            }}>
+              <User size={15} color="#818cf8" />
+              <span>Listed by: <strong style={{ color: '#a5b4fc' }}>{item.seller || 'Anonymous'}</strong></span>
+            </div>
 
             <p style={{
               color: 'var(--text-muted)',
@@ -451,22 +468,32 @@ export function AuctionArena({ itemId: propItemId, onBack: propOnBack }) {
               {item.description || 'Exclusive item on the live auction block.'}
             </p>
 
-            {/* Baseline Starting Price Info */}
+            {/* Baseline Starting Price & Seller Info */}
             <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+              gap: '12px',
               padding: '16px 20px',
               borderRadius: 'var(--radius-md)',
               background: 'rgba(255, 255, 255, 0.02)',
               border: '1px solid var(--border-dim)',
             }}>
-              <span style={{ fontSize: '0.9rem', color: 'var(--text-dim)' }}>
-                Starting Reserve
-              </span>
-              <span style={{ fontSize: '1.1rem', fontWeight: '700', color: 'var(--text-muted)' }}>
-                ₹{Number(item.start_price).toLocaleString('en-IN')}
-              </span>
+              <div>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', display: 'block', marginBottom: '4px' }}>
+                  Starting Reserve
+                </span>
+                <span style={{ fontSize: '1.1rem', fontWeight: '700', color: 'var(--text-muted)' }}>
+                  ₹{Number(item.start_price).toLocaleString('en-IN')}
+                </span>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', display: 'block', marginBottom: '4px' }}>
+                  Auctioneer / Seller
+                </span>
+                <span style={{ fontSize: '1.05rem', fontWeight: '700', color: '#a5b4fc', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <User size={15} color="#818cf8" /> {item.seller || 'Anonymous'}
+                </span>
+              </div>
             </div>
           </div>
 
