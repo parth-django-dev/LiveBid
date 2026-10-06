@@ -370,10 +370,21 @@ export function AuctionArena({ itemId: propItemId, onBack: propOnBack }) {
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 1,
+                }}>
+                  <Gavel size={80} color="rgba(99, 102, 241, 0.35)" />
+                </div>
                 <img
                   src={item.image}
                   alt=""
                   aria-hidden="true"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
                   style={{
                     position: 'absolute',
                     inset: '-20px',
@@ -383,14 +394,16 @@ export function AuctionArena({ itemId: propItemId, onBack: propOnBack }) {
                     filter: 'blur(24px) brightness(0.25) saturate(1.3)',
                     transform: 'scale(1.15)',
                     pointerEvents: 'none',
+                    zIndex: 2,
                   }}
                 />
                 <img
                   src={item.image}
                   alt={item.title}
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
                   style={{
                     position: 'relative',
-                    zIndex: 2,
+                    zIndex: 3,
                     width: '100%',
                     height: '100%',
                     objectFit: 'contain',

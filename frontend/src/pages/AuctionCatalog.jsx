@@ -162,12 +162,24 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
               )}
             </div>
 
-            {featured.image ? (
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1,
+            }}>
+              <Gavel size={96} color="rgba(99, 102, 241, 0.35)" />
+            </div>
+
+            {featured.image && (
               <>
                 <img
                   src={featured.image}
                   alt=""
                   aria-hidden="true"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
                   style={{
                     position: 'absolute',
                     inset: '-20px',
@@ -177,14 +189,16 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
                     filter: 'blur(24px) brightness(0.25) saturate(1.3)',
                     transform: 'scale(1.15)',
                     pointerEvents: 'none',
+                    zIndex: 2,
                   }}
                 />
                 <img
                   src={featured.image}
                   alt={featured.title}
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
                   style={{
                     position: 'relative',
-                    zIndex: 2,
+                    zIndex: 3,
                     width: '100%',
                     height: '100%',
                     objectFit: 'contain',
@@ -194,8 +208,6 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
                   }}
                 />
               </>
-            ) : (
-              <Gavel size={96} color="rgba(99, 102, 241, 0.35)" />
             )}
           </div>
 
@@ -460,13 +472,25 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
                     )}
                   </div>
 
-                  {item.image ? (
+                  <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1,
+                  }}>
+                    <Gavel size={56} color="rgba(99, 102, 241, 0.3)" />
+                  </div>
+
+                  {item.image && (
                     <>
                       {/* Ambient blurred backdrop so letterboxing matches item colors */}
                       <img
                         src={item.image}
                         alt=""
                         aria-hidden="true"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
                         style={{
                           position: 'absolute',
                           inset: '-15px',
@@ -476,15 +500,17 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
                           filter: 'blur(20px) brightness(0.25) saturate(1.3)',
                           transform: 'scale(1.1)',
                           pointerEvents: 'none',
+                          zIndex: 2,
                         }}
                       />
                       {/* Fully visible item that fits perfectly without cropping */}
                       <img
                         src={item.image}
                         alt={item.title}
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
                         style={{
                           position: 'relative',
-                          zIndex: 2,
+                          zIndex: 3,
                           width: '100%',
                           height: '100%',
                           objectFit: 'contain',
@@ -494,8 +520,6 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
                         }}
                       />
                     </>
-                  ) : (
-                    <Gavel size={56} color="rgba(99, 102, 241, 0.3)" />
                   )}
                 </div>
 

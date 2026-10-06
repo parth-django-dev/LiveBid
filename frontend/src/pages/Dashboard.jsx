@@ -279,12 +279,24 @@ export function Dashboard({ onSelectAuction, onOpenCreateModal }) {
                     ) : null}
                   </div>
 
-                  {item.image ? (
+                  <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1,
+                  }}>
+                    <Gavel size={64} color="rgba(99, 102, 241, 0.3)" />
+                  </div>
+
+                  {item.image && (
                     <>
                       <img
                         src={item.image}
                         alt=""
                         aria-hidden="true"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
                         style={{
                           position: 'absolute',
                           inset: '-15px',
@@ -294,14 +306,16 @@ export function Dashboard({ onSelectAuction, onOpenCreateModal }) {
                           filter: 'blur(20px) brightness(0.25) saturate(1.3)',
                           transform: 'scale(1.1)',
                           pointerEvents: 'none',
+                          zIndex: 2,
                         }}
                       />
                       <img
                         src={item.image}
                         alt={item.title}
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
                         style={{
                           position: 'relative',
-                          zIndex: 2,
+                          zIndex: 3,
                           width: '100%',
                           height: '100%',
                           objectFit: 'contain',
@@ -311,8 +325,6 @@ export function Dashboard({ onSelectAuction, onOpenCreateModal }) {
                         }}
                       />
                     </>
-                  ) : (
-                    <Gavel size={64} color="rgba(99, 102, 241, 0.3)" />
                   )}
                 </div>
 
