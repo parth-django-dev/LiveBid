@@ -52,17 +52,17 @@ export function getBidConfig(currentPrice = 0) {
 export function formatIncrementBadge(amount) {
   if (amount >= 10000000) {
     const cr = amount / 10000000;
-    return `+₹${cr % 1 === 0 ? cr : cr.toFixed(1)} Cr`;
+    return `+₹${parseFloat(cr.toFixed(2))} Cr`;
   }
   if (amount >= 100000) {
     const lk = amount / 100000;
-    return `+₹${lk % 1 === 0 ? lk : lk.toFixed(1)}L`;
+    return `+₹${parseFloat(lk.toFixed(2))}L`;
   }
   if (amount >= 1000) {
     const k = amount / 1000;
-    return `+₹${k % 1 === 0 ? k : k.toFixed(0)}K`;
+    return `+₹${parseFloat(k.toFixed(1))}K`;
   }
-  return `+₹${amount}`;
+  return `+₹${amount.toLocaleString('en-IN')}`;
 }
 
 export function formatCurrency(amount) {
