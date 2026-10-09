@@ -1,5 +1,6 @@
 import os
 import json
+import asyncio
 from datetime import timedelta
 from django.utils import timezone
 import redis.asyncio as aioredis
@@ -16,6 +17,12 @@ REDIS_POOL = aioredis.ConnectionPool.from_url(
     health_check_interval=30,
     retry_on_timeout=True,
 )
+
+redis_client = aioredis.Redis(connection_pool=REDIS_POOL)
+
+# High-concurrency in-memory caches to eliminate WAN database queries during real-time auctions
+AUCTION_METADATA_CACHE = {}
+USER_SESSION_CACHE = {}
 
 def get_minimum_step(current_price):
     price = float(current_price)
@@ -34,7 +41,7 @@ def get_minimum_step(current_price):
         return 100000.0
 
 @database_sync_to_async
-def get_auction_info(item_id):
+def _fetch_auction_info_from_db(item_id):
     try:
         item = AuctionItem.objects.select_related('seller', 'winner').get(pk=item_id)
         now = timezone.now()
@@ -55,6 +62,15 @@ def get_auction_info(item_id):
         }
     except AuctionItem.DoesNotExist:
         return None
+
+async def get_auction_info(item_id):
+    item_key = str(item_id)
+    if item_key in AUCTION_METADATA_CACHE:
+        return AUCTION_METADATA_CACHE[item_key]
+    info = await _fetch_auction_info_from_db(item_id)
+    if info:
+        AUCTION_METADATA_CACHE[item_key] = info
+    return info
 
 @database_sync_to_async
 def finalize_expired_auction(item_id):
@@ -107,6 +123,43 @@ def record_bid(user, item_id, amount):
         print(f"Error recording bid for item {item_id}: {err_msg}")
         return None, err_msg
 
+@database_sync_to_async
+def _fetch_user_from_session_db(session_key):
+    try:
+        from django.contrib.sessions.models import Session
+        from django.contrib.auth.models import User
+        session = Session.objects.filter(session_key=session_key).first()
+        if not session:
+            return None
+        data = session.get_decoded()
+        user_id = data.get('_auth_user_id')
+        if user_id:
+            return User.objects.filter(pk=user_id).first()
+    except Exception as e:
+        print(f"Error resolving session user: {e}")
+    return None
+
+async def get_user_from_session_key(session_key):
+    if not session_key:
+        return None
+    if session_key in USER_SESSION_CACHE:
+        return USER_SESSION_CACHE[session_key]
+    user = await _fetch_user_from_session_db(session_key)
+    if user:
+        USER_SESSION_CACHE[session_key] = user
+    return user
+
+async def persist_bid_async(user, item_id, amount, channel_layer, group_name):
+    """Background task: saves bid to PostgreSQL and checks anti-sniping without blocking WebSocket."""
+    try:
+        await record_bid(user, item_id, amount)
+        new_end_time = await check_and_extend_auction(item_id)
+        item_key = str(item_id)
+        if new_end_time and item_key in AUCTION_METADATA_CACHE:
+            AUCTION_METADATA_CACHE[item_key]['end_time'] = new_end_time
+    except Exception as e:
+        print(f"Background DB persist error for item {item_id}: {e}")
+
 class AuctionConsumer(AsyncWebsocketConsumer):
     LUA_ATOMIC_BID = """
     local current_bidder = redis.call('GET', KEYS[2])
@@ -140,42 +193,46 @@ class AuctionConsumer(AsyncWebsocketConsumer):
             self.group_name = f'auction_{self.item_id}'
             self.redis_bid_key = f'auction:{self.item_id}:highest_bid'
             self.redis_bidder_key = f'auction:{self.item_id}:highest_bidder'
-            self.redis = aioredis.Redis(connection_pool=REDIS_POOL)
+            self.redis = redis_client
 
-            # Verify item exists
-            item_info = await get_auction_info(self.item_id)
-            if item_info is None:
-                await self.close()
-                return
+            # Accept WebSocket handshake immediately (< 5ms response time)
+            await self.accept()
 
-            if item_info['is_active']:
-                try:
-                    # Sync Redis cache with DB state if needed
-                    cached_bid = await self.redis.get(self.redis_bid_key)
-                    if cached_bid is None or float(cached_bid) < float(item_info['current_bid']):
-                        await self.redis.set(self.redis_bid_key, str(item_info['current_bid']))
-
-                    cached_bidder = await self.redis.get(self.redis_bidder_key)
-                    if item_info.get('highest_bidder'):
-                        if cached_bidder is None or cached_bid is None or float(cached_bid) < float(item_info['current_bid']):
-                            await self.redis.set(self.redis_bidder_key, item_info['highest_bidder'])
-                except Exception as cache_err:
-                    print(f"Warning: Redis cache sync skipped: {cache_err}")
-
+            # Join room group for live broadcasts
             await self.channel_layer.group_add(
                 self.group_name,
                 self.channel_name
             )
-            await self.accept()
 
-            # If already finalized, push ended state
-            if not item_info['is_live']:
-                await self.send(text_data=json.dumps({
-                    'type': 'auction_ended',
-                    'item_id': self.item_id,
-                    'winner': item_info.get('winner'),
-                    'winning_bid': item_info.get('current_bid'),
-                }))
+            # Check cache in Redis first to avoid DB queries per viewer
+            cached_bid = None
+            try:
+                cached_bid = await self.redis.get(self.redis_bid_key)
+            except Exception as cache_err:
+                print(f"Warning: Redis cache get skipped: {cache_err}")
+
+            # If cache miss (first client joining this room), load DB info and seed Redis
+            if cached_bid is None:
+                item_info = await get_auction_info(self.item_id)
+                if item_info is None:
+                    await self.close()
+                    return
+
+                if item_info['is_active']:
+                    try:
+                        await self.redis.set(self.redis_bid_key, str(item_info['current_bid']))
+                        if item_info.get('highest_bidder'):
+                            await self.redis.set(self.redis_bidder_key, item_info['highest_bidder'])
+                    except Exception as cache_err:
+                        print(f"Warning: Redis cache sync skipped: {cache_err}")
+
+                if not item_info['is_live']:
+                    await self.send(text_data=json.dumps({
+                        'type': 'auction_ended',
+                        'item_id': self.item_id,
+                        'winner': item_info.get('winner'),
+                        'winning_bid': item_info.get('current_bid'),
+                    }))
         except Exception as e:
             print(f"Error in consumer connect: {e}")
             await self.close()
@@ -189,15 +246,26 @@ class AuctionConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             print(f"Error in consumer disconnect: {e}")
 
-    async def receive(self, text_data):
-        user = self.scope.get('user')
-        if not user or not user.is_authenticated:
-            await self.send(text_data=json.dumps({
-                'type': 'error',
-                'message': 'Authentication required to place a bid. Please log in.'
-            }))
-            return
+    async def get_current_user(self):
+        if hasattr(self, '_authenticated_user') and self._authenticated_user:
+            return self._authenticated_user
 
+        scope_user = self.scope.get('user')
+        if scope_user and getattr(scope_user, 'is_authenticated', False):
+            self._authenticated_user = scope_user
+            return scope_user
+
+        cookies = self.scope.get('cookies', {})
+        session_id = cookies.get('sessionid')
+        if session_id:
+            user = await get_user_from_session_key(session_id)
+            if user:
+                self._authenticated_user = user
+                return user
+
+        return None
+
+    async def receive(self, text_data):
         try:
             data = json.loads(text_data)
         except json.JSONDecodeError:
@@ -209,6 +277,14 @@ class AuctionConsumer(AsyncWebsocketConsumer):
 
         if data.get('type') == 'ping':
             await self.send(text_data=json.dumps({'type': 'pong'}))
+            return
+
+        user = await self.get_current_user()
+        if not user or not user.is_authenticated:
+            await self.send(text_data=json.dumps({
+                'type': 'error',
+                'message': 'Authentication required to place a bid. Please log in.'
+            }))
             return
 
         if data.get('type') == 'bid':
@@ -257,8 +333,13 @@ class AuctionConsumer(AsyncWebsocketConsumer):
                     }))
                     return
 
-                # Check proportional minimum step requirement
-                current_highest = float(item_info['current_bid'])
+                # Check minimum increment step against Redis current highest bid
+                cached_bid = await self.redis.get(self.redis_bid_key)
+                if cached_bid is not None:
+                    current_highest = float(cached_bid)
+                else:
+                    current_highest = float(item_info['current_bid'])
+
                 min_step = get_minimum_step(current_highest)
                 if amount < current_highest + min_step:
                     await self.send(text_data=json.dumps({
@@ -284,32 +365,25 @@ class AuctionConsumer(AsyncWebsocketConsumer):
                     }))
                     return
                 elif result == 1:
-                    # Save approved bid to PostgreSQL safely
-                    new_bid, db_err = await record_bid(user, self.item_id, amount)
-                    if db_err:
-                        await self.send(text_data=json.dumps({
-                            'type': 'error',
-                            'message': db_err
-                        }))
-                        return
+                    # Offload PostgreSQL persistence to background task so WebSocket clients are never blocked by WAN database latency
+                    asyncio.create_task(persist_bid_async(user, self.item_id, amount, self.channel_layer, self.group_name))
 
-                    # Anti-Sniping (Soft Close check)
-                    new_end_time = await check_and_extend_auction(self.item_id)
-                    extended = bool(new_end_time)
+                    bid_payload = {
+                        'type': 'bid_update',
+                        'user': user.username,
+                        'item_id': self.item_id,
+                        'amount': str(amount),
+                        'highest_bidder': user.username,
+                        'end_time': item_info.get('end_time'),
+                        'extended': False,
+                        'sender_channel': self.channel_name,
+                    }
 
-                    # Broadcast live update to all connected clients in the room
-                    await self.channel_layer.group_send(
-                        self.group_name,
-                        {
-                            'type': 'bid_update',
-                            'user': user.username,
-                            'item_id': self.item_id,
-                            'amount': str(amount),
-                            'highest_bidder': user.username,
-                            'end_time': new_end_time if extended else item_info['end_time'],
-                            'extended': extended
-                        }
-                    )
+                    # 1. Immediately acknowledge the winning bidder over local socket (< 2ms)
+                    await self.send(text_data=json.dumps(bid_payload))
+
+                    # 2. Fan out to other room viewers asynchronously via Redis Pub/Sub in the background
+                    asyncio.create_task(self.channel_layer.group_send(self.group_name, bid_payload))
                 else:
                     current_val = await self.redis.get(self.redis_bid_key)
                     if isinstance(current_val, bytes):
@@ -326,6 +400,10 @@ class AuctionConsumer(AsyncWebsocketConsumer):
                 }))
 
     async def bid_update(self, event):
+        # Skip duplicate frame for the winning bidder who was already directly acknowledged
+        if event.get('sender_channel') == self.channel_name:
+            return
+
         await self.send(text_data=json.dumps({
             'type': 'bid_update',
             'user': event['user'],
