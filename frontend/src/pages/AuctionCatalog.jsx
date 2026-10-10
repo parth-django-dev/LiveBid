@@ -210,22 +210,18 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
               position: 'relative',
               border: '1px solid rgba(255, 255, 255, 0.08)',
             }}>
-              {/* Badges */}
+              {/* Badges on Top of Top Card Image */}
               <div style={{
                 position: 'absolute',
                 top: '16px',
                 left: '16px',
-                zIndex: 4,
+                zIndex: 10,
                 display: 'flex',
                 gap: '8px',
                 flexWrap: 'wrap',
               }}>
-                <span className="badge-live" style={{
-                  background: 'rgba(245, 158, 11, 0.25)',
-                  border: '1px solid rgba(245, 158, 11, 0.6)',
-                  color: '#fbbf24',
-                }}>
-                  <Crown size={13} color="#fbbf24" /> Top Leader
+                <span className="badge-featured">
+                  <Crown size={13} /> Top Leader
                 </span>
 
                 {isTopItemLive ? (
@@ -239,52 +235,55 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
                 )}
               </div>
 
-              <div style={{
-                position: 'absolute',
-                inset: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 1,
-              }}>
-                <Gavel size={96} color="rgba(99, 102, 241, 0.35)" />
-              </div>
-
-              {topBidItem.image && (
+              {topBidItem.image ? (
                 <>
-                  <img
-                    src={topBidItem.image}
-                    alt=""
-                    aria-hidden="true"
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                    style={{
-                      position: 'absolute',
-                      inset: '-20px',
-                      width: 'calc(100% + 40px)',
-                      height: 'calc(100% + 40px)',
-                      objectFit: 'cover',
-                      filter: 'blur(24px) brightness(0.25) saturate(1.3)',
-                      transform: 'scale(1.15)',
-                      pointerEvents: 'none',
-                      zIndex: 2,
-                    }}
-                  />
                   <img
                     src={topBidItem.image}
                     alt={topBidItem.title}
                     onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    className="card-banner-img"
                     style={{
-                      position: 'relative',
-                      zIndex: 3,
                       width: '100%',
                       height: '100%',
-                      objectFit: 'contain',
-                      padding: '16px',
-                      filter: 'drop-shadow(0 8px 24px rgba(0, 0, 0, 0.5))',
-                      transition: 'transform 0.4s ease',
+                      minHeight: '340px',
+                      objectFit: 'cover',
+                      objectPosition: 'center',
+                      transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
                     }}
                   />
+                  {/* Top & Bottom Scrim Gradients */}
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '90px',
+                    background: 'linear-gradient(180deg, rgba(11, 15, 25, 0.8) 0%, transparent 100%)',
+                    zIndex: 3,
+                    pointerEvents: 'none',
+                  }} />
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: '70px',
+                    background: 'linear-gradient(0deg, rgba(11, 15, 25, 0.9) 0%, transparent 100%)',
+                    zIndex: 3,
+                    pointerEvents: 'none',
+                  }} />
                 </>
+              ) : (
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 1,
+                }}>
+                  <Gavel size={96} color="rgba(99, 102, 241, 0.35)" />
+                </div>
               )}
             </div>
 
@@ -620,84 +619,105 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
                 {/* Item Card Banner */}
                 <div style={{
                   height: '220px',
-                  background: 'radial-gradient(circle at center, rgba(30, 27, 75, 0.7) 0%, #0b0f19 100%)',
+                  background: '#0b0f19',
+                  position: 'relative',
+                  overflow: 'hidden',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  position: 'relative',
-                  overflow: 'hidden',
                 }}>
-                  {/* Status Badges */}
-                  <div style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 3 }}>
-                    {isLive ? (
-                      <span className="badge-live">
-                        <span className="dot" /> LIVE
-                      </span>
-                    ) : (
-                      <span className="badge-ended">
-                        ENDED
-                      </span>
-                    )}
-                  </div>
-
-                  <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 3 }}>
-                    {isLive ? (
-                      <CountdownTimer endTime={item.end_time} compact />
-                    ) : (
-                      <span className="badge-ended" style={{ fontSize: '0.75rem' }}>
-                        {item.winner ? `Won by ${item.winner}` : 'Finalized'}
-                      </span>
-                    )}
-                  </div>
-
+                  {/* Status Badges Header - Strictly layered on top */}
                   <div style={{
                     position: 'absolute',
-                    inset: 0,
+                    top: '12px',
+                    left: '12px',
+                    right: '12px',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1,
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                    zIndex: 10,
+                    pointerEvents: 'none',
                   }}>
-                    <Gavel size={56} color="rgba(99, 102, 241, 0.3)" />
+                    <div style={{ pointerEvents: 'auto' }}>
+                      {isLive ? (
+                        <span className="badge-live">
+                          <span className="dot" /> LIVE
+                        </span>
+                      ) : (
+                        <span className="badge-ended">
+                          ENDED
+                        </span>
+                      )}
+                    </div>
+
+                    <div style={{ pointerEvents: 'auto', maxWidth: '65%' }}>
+                      {isLive ? (
+                        <CountdownTimer endTime={item.end_time} compact />
+                      ) : (
+                        <span className="badge-ended" style={{
+                          fontSize: '0.75rem',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          display: 'inline-block',
+                          maxWidth: '100%',
+                        }}>
+                          {item.winner ? `Won by ${item.winner}` : 'Finalized'}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  {item.image && (
+                  {item.image ? (
                     <>
-                      {/* Ambient blurred backdrop */}
-                      <img
-                        src={item.image}
-                        alt=""
-                        aria-hidden="true"
-                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                        style={{
-                          position: 'absolute',
-                          inset: '-15px',
-                          width: 'calc(100% + 30px)',
-                          height: 'calc(100% + 30px)',
-                          objectFit: 'cover',
-                          filter: 'blur(20px) brightness(0.25) saturate(1.3)',
-                          transform: 'scale(1.1)',
-                          pointerEvents: 'none',
-                          zIndex: 2,
-                        }}
-                      />
-                      {/* Fully visible item that fits perfectly */}
                       <img
                         src={item.image}
                         alt={item.title}
                         onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        className="card-banner-img"
                         style={{
-                          position: 'relative',
-                          zIndex: 3,
                           width: '100%',
                           height: '100%',
-                          objectFit: 'contain',
-                          padding: '12px',
-                          filter: 'drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45))',
-                          transition: 'transform 0.3s ease',
+                          objectFit: 'cover',
+                          objectPosition: 'center',
+                          transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
                         }}
                       />
+                      {/* Top & Bottom Scrim Gradients for contrast and visual flow */}
+                      <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: '75px',
+                        background: 'linear-gradient(180deg, rgba(11, 15, 25, 0.8) 0%, rgba(11, 15, 25, 0.25) 50%, transparent 100%)',
+                        zIndex: 3,
+                        pointerEvents: 'none',
+                      }} />
+                      <div style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: '60px',
+                        background: 'linear-gradient(0deg, rgba(11, 15, 25, 0.85) 0%, transparent 100%)',
+                        zIndex: 3,
+                        pointerEvents: 'none',
+                      }} />
                     </>
+                  ) : (
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: 'radial-gradient(circle at center, rgba(30, 27, 75, 0.7) 0%, #0b0f19 100%)',
+                      zIndex: 1,
+                    }}>
+                      <Gavel size={56} color="rgba(99, 102, 241, 0.3)" />
+                    </div>
                   )}
                 </div>
 

@@ -250,81 +250,100 @@ export function Dashboard({ onSelectAuction, onOpenCreateModal }) {
                   position: 'relative',
                   overflow: 'hidden',
                 }}>
-                  {/* Status Badges */}
-                  <div style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 2 }}>
-                    {isLive ? (
-                      <span className="badge-live">
-                        <span className="dot" /> LIVE
-                      </span>
-                    ) : (
-                      <span className="badge-ended">ENDED</span>
-                    )}
-                  </div>
-
-                  <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 2 }}>
-                    {isLive ? (
-                      <CountdownTimer endTime={item.end_time} compact />
-                    ) : didIWin ? (
-                      <span style={{
-                        padding: '4px 10px',
-                        borderRadius: 'var(--radius-full)',
-                        background: 'rgba(16, 185, 129, 0.25)',
-                        border: '1px solid #10b981',
-                        color: '#34d399',
-                        fontSize: '0.78rem',
-                        fontWeight: '700',
-                      }}>
-                        🏆 WON
-                      </span>
-                    ) : null}
-                  </div>
-
+                  {/* Status Badges Header */}
                   <div style={{
                     position: 'absolute',
-                    inset: 0,
+                    top: '12px',
+                    left: '12px',
+                    right: '12px',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1,
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                    zIndex: 10,
+                    pointerEvents: 'none',
                   }}>
-                    <Gavel size={64} color="rgba(99, 102, 241, 0.3)" />
+                    <div style={{ pointerEvents: 'auto' }}>
+                      {isLive ? (
+                        <span className="badge-live">
+                          <span className="dot" /> LIVE
+                        </span>
+                      ) : (
+                        <span className="badge-ended">ENDED</span>
+                      )}
+                    </div>
+
+                    <div style={{ pointerEvents: 'auto', maxWidth: '65%' }}>
+                      {isLive ? (
+                        <CountdownTimer endTime={item.end_time} compact />
+                      ) : didIWin ? (
+                        <span style={{
+                          padding: '5px 12px',
+                          borderRadius: 'var(--radius-full)',
+                          background: 'rgba(15, 23, 42, 0.75)',
+                          backdropFilter: 'blur(10px)',
+                          WebkitBackdropFilter: 'blur(10px)',
+                          border: '1px solid #10b981',
+                          color: '#34d399',
+                          fontSize: '0.78rem',
+                          fontWeight: '700',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+                        }}>
+                          🏆 WON
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
 
-                  {item.image && (
+                  {item.image ? (
                     <>
-                      <img
-                        src={item.image}
-                        alt=""
-                        aria-hidden="true"
-                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                        style={{
-                          position: 'absolute',
-                          inset: '-15px',
-                          width: 'calc(100% + 30px)',
-                          height: 'calc(100% + 30px)',
-                          objectFit: 'cover',
-                          filter: 'blur(20px) brightness(0.25) saturate(1.3)',
-                          transform: 'scale(1.1)',
-                          pointerEvents: 'none',
-                          zIndex: 2,
-                        }}
-                      />
                       <img
                         src={item.image}
                         alt={item.title}
                         onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        className="card-banner-img"
                         style={{
-                          position: 'relative',
-                          zIndex: 3,
                           width: '100%',
                           height: '100%',
-                          objectFit: 'contain',
-                          padding: '10px',
-                          filter: 'drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45))',
-                          transition: 'transform 0.3s ease',
+                          objectFit: 'cover',
+                          objectPosition: 'center',
+                          transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
                         }}
                       />
+                      {/* Top & Bottom Scrim Gradients */}
+                      <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: '75px',
+                        background: 'linear-gradient(180deg, rgba(11, 15, 25, 0.8) 0%, rgba(11, 15, 25, 0.25) 50%, transparent 100%)',
+                        zIndex: 3,
+                        pointerEvents: 'none',
+                      }} />
+                      <div style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: '60px',
+                        background: 'linear-gradient(0deg, rgba(11, 15, 25, 0.85) 0%, transparent 100%)',
+                        zIndex: 3,
+                        pointerEvents: 'none',
+                      }} />
                     </>
+                  ) : (
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: 'radial-gradient(circle at center, rgba(30, 27, 75, 0.7) 0%, #0b0f19 100%)',
+                      zIndex: 1,
+                    }}>
+                      <Gavel size={64} color="rgba(99, 102, 241, 0.3)" />
+                    </div>
                   )}
                 </div>
 

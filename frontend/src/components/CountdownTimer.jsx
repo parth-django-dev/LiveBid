@@ -48,13 +48,16 @@ export function CountdownTimer({ endTime, onExpire, compact = false }) {
         display: 'inline-flex',
         alignItems: 'center',
         gap: '6px',
-        padding: '4px 10px',
+        padding: '5px 12px',
         borderRadius: '9999px',
         fontSize: '0.8rem',
-        fontWeight: '600',
-        background: timeLeft.isUrgent ? 'rgba(239, 68, 68, 0.15)' : 'rgba(99, 102, 241, 0.12)',
-        color: timeLeft.isUrgent ? '#f87171' : '#a5b4fc',
-        border: `1px solid ${timeLeft.isUrgent ? 'rgba(239, 68, 68, 0.3)' : 'rgba(99, 102, 241, 0.25)'}`,
+        fontWeight: '700',
+        background: timeLeft.isUrgent ? 'rgba(239, 68, 68, 0.25)' : 'rgba(15, 23, 42, 0.75)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        color: timeLeft.isUrgent ? '#fca5a5' : '#c7d2fe',
+        border: `1px solid ${timeLeft.isUrgent ? 'rgba(239, 68, 68, 0.5)' : 'rgba(129, 140, 248, 0.4)'}`,
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
       }}>
         <Clock size={13} className={timeLeft.isUrgent ? 'animate-beacon' : ''} />
         {timeLeft.days > 0 && `${timeLeft.days}d `}
