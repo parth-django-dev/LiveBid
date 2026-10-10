@@ -57,11 +57,12 @@ class LiveAuctionUser(HttpUser):
 
         session_id = self.session.cookies.get("sessionid")
         self.client.cookies.update(self.session.cookies)
-        headers = [f"Cookie: sessionid={session_id}"] if session_id else []
+        user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        headers = [f"Cookie: sessionid={session_id}", f"User-Agent: {user_agent}"] if session_id else [f"User-Agent: {user_agent}"]
 
         # 2. Discover active auction items
         try:
-            catalog_res = self.session.get(f"{http_url}/api/active-auctions/", timeout=10)
+            catalog_res = self.session.get(f"{http_url}/api/active-auctions/", headers={"User-Agent": user_agent}, timeout=10)
             if catalog_res.status_code == 200:
                 auctions = catalog_res.json().get("AuctionList", [])
                 live_auctions = [a for a in auctions if a.get("is_live") or a.get("is_active")]
@@ -81,6 +82,7 @@ class LiveAuctionUser(HttpUser):
             self.ws = websocket.create_connection(
                 f"{ws_url}/ws/auction/{self.item_id}/",
                 header=headers,
+                origin="https://live-bid-seven.vercel.app",
                 timeout=15
             )
             self.ws.settimeout(15.0)

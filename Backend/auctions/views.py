@@ -1,4 +1,5 @@
 import json
+import time
 from datetime import timedelta
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
@@ -42,13 +43,18 @@ def auto_finalize_expired_item(item, now):
 
 # Resource Retrieval views
 def active_auctions(request):
+    t_start = time.time()
     now = timezone.now()
-    # Optimized query: select_related for seller/winner + prefetch_related for ordered bids
-    # This completely eliminates N+1 queries across items.
-    items = AuctionItem.objects.select_related('seller', 'winner').prefetch_related(
-        Prefetch('bids', queryset=Bid.objects.select_related('user').order_by('-amount'))
-    ).order_by('-id')
 
+    # Measure DB query time
+    t_db_start = time.time()
+    items = list(AuctionItem.objects.select_related('seller', 'winner').prefetch_related(
+        Prefetch('bids', queryset=Bid.objects.select_related('user').order_by('-amount'))
+    ).order_by('-id'))
+    t_db = time.time() - t_db_start
+
+    # Measure serialization time
+    t_proc_start = time.time()
     AuctionList = []
     for item in items:
         auto_finalize_expired_item(item, now)
@@ -74,21 +80,33 @@ def active_auctions(request):
             'is_live': is_live,
             'winner': winner,
         })
+    t_proc = time.time() - t_proc_start
+    total_t = time.time() - t_start
+
+    print(f"[PERF:active_auctions] total={total_t*1000:.1f}ms | db={t_db*1000:.1f}ms | proc={t_proc*1000:.1f}ms | items={len(items)}", flush=True)
 
     return JsonResponse({'AuctionList': AuctionList})
 
 def auction_details(request, id):
+    t_start = time.time()
+
+    # Measure DB query time
+    t_db_start = time.time()
     item = get_object_or_404(
         AuctionItem.objects.select_related('seller', 'winner').prefetch_related(
             Prefetch('bids', queryset=Bid.objects.select_related('user').order_by('-bid_time'))
         ),
         pk=id
     )
+    item_bids = list(item.bids.all())
+    t_db = time.time() - t_db_start
+
+    # Measure processing time
+    t_proc_start = time.time()
     now = timezone.now()
     auto_finalize_expired_item(item, now)
 
     # All bids on the item ordered by bid_time descending
-    item_bids = list(item.bids.all())
     bids_List = []
     for bid in item_bids:
         bids_List.append({
@@ -107,6 +125,10 @@ def auction_details(request, id):
     winner = item.winner.username if item.winner else (highest_bidder if not is_live else None)
     min_step = get_minimum_step(current_highest)
     min_next_bid = current_highest + min_step
+    t_proc = time.time() - t_proc_start
+    total_t = time.time() - t_start
+
+    print(f"[PERF:auction_details:{id}] total={total_t*1000:.1f}ms | db={t_db*1000:.1f}ms | proc={t_proc*1000:.1f}ms | bids_count={len(item_bids)}", flush=True)
 
     return JsonResponse({
         'id': item.id,
