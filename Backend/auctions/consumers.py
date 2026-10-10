@@ -157,6 +157,14 @@ async def persist_bid_async(user, item_id, amount, channel_layer, group_name):
         item_key = str(item_id)
         if new_end_time and item_key in AUCTION_METADATA_CACHE:
             AUCTION_METADATA_CACHE[item_key]['end_time'] = new_end_time
+        
+        # Invalidate Redis REST cache so catalog updates immediately on new bids
+        try:
+            from django.core.cache import cache
+            cache.delete(f"auction_details_{item_id}")
+            cache.delete("active_auctions_list")
+        except Exception as cache_err:
+            print(f"Warning: Failed to invalidate REST cache: {cache_err}")
     except Exception as e:
         print(f"Background DB persist error for item {item_id}: {e}")
 

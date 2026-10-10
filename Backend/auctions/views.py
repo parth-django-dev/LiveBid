@@ -13,8 +13,9 @@ from django.utils.dateparse import parse_datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Prefetch
 from .models import AuctionItem, Bid
+from django.core.cache import cache
 
-def get_minimum_step(current_price):
+def get_minimum_step(current_price):    
     price = float(current_price)
     if price < 1000:
         return 50.0
@@ -44,6 +45,14 @@ def auto_finalize_expired_item(item, now):
 # Resource Retrieval views
 def active_auctions(request):
     t_start = time.time()
+    cache_key = "active_auctions_list"
+    cached_data = cache.get(cache_key)
+
+    if cached_data is not None:
+        total_t = time.time() - t_start
+        print(f"[PERF:active_auctions] CACHE_HIT total={total_t*1000:.1f}ms", flush=True)
+        return JsonResponse(cached_data)
+
     now = timezone.now()
 
     # Measure DB query time
@@ -83,12 +92,22 @@ def active_auctions(request):
     t_proc = time.time() - t_proc_start
     total_t = time.time() - t_start
 
-    print(f"[PERF:active_auctions] total={total_t*1000:.1f}ms | db={t_db*1000:.1f}ms | proc={t_proc*1000:.1f}ms | items={len(items)}", flush=True)
+    response_data = {'AuctionList': AuctionList}
+    cache.set(cache_key, response_data, timeout=3)  # 3-second TTL
 
-    return JsonResponse({'AuctionList': AuctionList})
+    print(f"[PERF:active_auctions] CACHE_MISS total={total_t*1000:.1f}ms | db={t_db*1000:.1f}ms | proc={t_proc*1000:.1f}ms | items={len(items)}", flush=True)
+
+    return JsonResponse(response_data)
 
 def auction_details(request, id):
     t_start = time.time()
+    cache_key = f"auction_details_{id}"
+    cached_data = cache.get(cache_key)
+
+    if cached_data is not None:
+        total_t = time.time() - t_start
+        print(f"[PERF:auction_details:{id}] CACHE_HIT total={total_t*1000:.1f}ms", flush=True)
+        return JsonResponse(cached_data)
 
     # Measure DB query time
     t_db_start = time.time()
@@ -98,7 +117,8 @@ def auction_details(request, id):
         ),
         pk=id
     )
-    item_bids = list(item.bids.all())
+    # Limit bids to latest 20 to avoid unbounded JSON payloads
+    item_bids = list(item.bids.all()[:20])
     t_db = time.time() - t_db_start
 
     # Measure processing time
@@ -106,7 +126,7 @@ def auction_details(request, id):
     now = timezone.now()
     auto_finalize_expired_item(item, now)
 
-    # All bids on the item ordered by bid_time descending
+    # Bids on the item ordered by bid_time descending
     bids_List = []
     for bid in item_bids:
         bids_List.append({
@@ -128,9 +148,7 @@ def auction_details(request, id):
     t_proc = time.time() - t_proc_start
     total_t = time.time() - t_start
 
-    print(f"[PERF:auction_details:{id}] total={total_t*1000:.1f}ms | db={t_db*1000:.1f}ms | proc={t_proc*1000:.1f}ms | bids_count={len(item_bids)}", flush=True)
-
-    return JsonResponse({
+    detail_data = {
         'id': item.id,
         'title': item.title,
         'description': item.description,
@@ -148,7 +166,13 @@ def auction_details(request, id):
         'is_live': is_live,
         'winner': winner,
         'bids_List': bids_List
-    })
+    }
+
+    cache.set(cache_key, detail_data, timeout=3)  # 3-second TTL
+
+    print(f"[PERF:auction_details:{id}] CACHE_MISS total={total_t*1000:.1f}ms | db={t_db*1000:.1f}ms | proc={t_proc*1000:.1f}ms | bids_count={len(item_bids)}", flush=True)
+
+    return JsonResponse(detail_data)
 
 def my_bids(request):
     if not request.user.is_authenticated:
