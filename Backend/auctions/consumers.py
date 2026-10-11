@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import asyncio
 from datetime import timedelta
 from django.utils import timezone
@@ -65,11 +66,13 @@ def _fetch_auction_info_from_db(item_id):
 
 async def get_auction_info(item_id):
     item_key = str(item_id)
-    if item_key in AUCTION_METADATA_CACHE:
-        return AUCTION_METADATA_CACHE[item_key]
+    now_ts = time.time()
+    cached = AUCTION_METADATA_CACHE.get(item_key)
+    if cached and (now_ts - cached.get('cached_at', 0) < 5.0):
+        return cached['data']
     info = await _fetch_auction_info_from_db(item_id)
     if info:
-        AUCTION_METADATA_CACHE[item_key] = info
+        AUCTION_METADATA_CACHE[item_key] = {'data': info, 'cached_at': now_ts}
     return info
 
 @database_sync_to_async
@@ -149,20 +152,17 @@ async def get_user_from_session_key(session_key):
         USER_SESSION_CACHE[session_key] = user
     return user
 
-async def persist_bid_async(user, item_id, amount, channel_layer, group_name):
+async def persist_bid_async(user, item_id, amount, channel_layer, group_name, is_extended=False):
     """Background task: saves bid to PostgreSQL and checks anti-sniping without blocking WebSocket."""
     try:
         await record_bid(user, item_id, amount)
-        new_end_time = await check_and_extend_auction(item_id)
-        item_key = str(item_id)
-        if new_end_time and item_key in AUCTION_METADATA_CACHE:
-            AUCTION_METADATA_CACHE[item_key]['end_time'] = new_end_time
+        if is_extended:
+            await check_and_extend_auction(item_id)
         
-        # Invalidate Redis REST cache so catalog updates immediately on new bids
+        # Invalidate Redis REST cache for this item so room details update immediately
         try:
             from django.core.cache import cache
             cache.delete(f"auction_details_{item_id}")
-            cache.delete("active_auctions_list")
         except Exception as cache_err:
             print(f"Warning: Failed to invalidate REST cache: {cache_err}")
     except Exception as e:
@@ -373,8 +373,27 @@ class AuctionConsumer(AsyncWebsocketConsumer):
                     }))
                     return
                 elif result == 1:
+                    # Check anti-sniping (soft close: if < 60s remain, extend by 60s)
+                    now = timezone.now()
+                    end_time_dt = item_info.get('end_time_dt')
+                    is_extended = False
+                    new_end_time = item_info.get('end_time')
+
+                    if end_time_dt:
+                        remaining = (end_time_dt - now).total_seconds()
+                        if 0 < remaining < 60:
+                            is_extended = True
+                            extended_dt = now + timedelta(seconds=60)
+                            new_end_time = extended_dt.isoformat()
+                            item_info['end_time'] = new_end_time
+                            item_info['end_time_dt'] = extended_dt
+                            item_key = str(self.item_id)
+                            if item_key in AUCTION_METADATA_CACHE:
+                                AUCTION_METADATA_CACHE[item_key]['data']['end_time'] = new_end_time
+                                AUCTION_METADATA_CACHE[item_key]['data']['end_time_dt'] = extended_dt
+
                     # Offload PostgreSQL persistence to background task so WebSocket clients are never blocked by WAN database latency
-                    asyncio.create_task(persist_bid_async(user, self.item_id, amount, self.channel_layer, self.group_name))
+                    asyncio.create_task(persist_bid_async(user, self.item_id, amount, self.channel_layer, self.group_name, is_extended))
 
                     bid_payload = {
                         'type': 'bid_update',
@@ -382,8 +401,8 @@ class AuctionConsumer(AsyncWebsocketConsumer):
                         'item_id': self.item_id,
                         'amount': str(amount),
                         'highest_bidder': user.username,
-                        'end_time': item_info.get('end_time'),
-                        'extended': False,
+                        'end_time': new_end_time,
+                        'extended': is_extended,
                         'sender_channel': self.channel_name,
                     }
 

@@ -2,13 +2,22 @@
   "name": "auctionplatform",
   "version": "1.0.0",
   "main": "loadtest.js",
-  "scripts": {},
+  "scripts": {
+    "test": "jest"
+  },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "<rootDir>/tests/"
+    ]
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
     "@playwright/test": "^1.64.0",
-    "@types/node": "^26.6.5"
+    "@types/node": "^26.6.5",
+    "jest": "^30.5.2"
   }
 }

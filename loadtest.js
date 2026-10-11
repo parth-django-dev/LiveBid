@@ -4,9 +4,9 @@ import { check, sleep } from 'k6';
 import { Trend, Counter } from 'k6/metrics';
 
 // Target endpoints
-const REST_URL = __ENV.REST_URL || 'https://live-bid-parth-django-devs-projects.vercel.app';
+const REST_URL = __ENV.REST_URL || 'https://livebid-ti6v.onrender.com';
 const WS_BASE_URL = __ENV.WS_BASE_URL || 'wss://livebid-ti6v.onrender.com';
-const ITEM_ID = __ENV.ITEM_ID ? parseInt(__ENV.ITEM_ID) : 11;
+const ITEM_ID = __ENV.ITEM_ID ? parseInt(__ENV.ITEM_ID) : 17;
 
 // Custom Metrics
 const wsConnectDuration = new Trend('ws_connect_duration');
@@ -76,7 +76,7 @@ export function setup() {
   }
 
   // 2. Authenticate test users pool
-  const testUsers = ['bidder_alpha', 'bidder_beta', 'bidder_gamma', 'bidder_delta', 'bidder_epsilon'];
+  const testUsers = ['bidder_1', 'bidder_2', 'bidder_3', 'bidder_4', 'bidder_5'];
   const sessions = [];
 
   for (const username of testUsers) {

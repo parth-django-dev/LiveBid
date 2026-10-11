@@ -103,6 +103,8 @@ export function AuthModal() {
             </label>
             <div style={{ position: 'relative' }}>
               <input
+                id="auth-username"
+                data-testid="auth-username"
                 type="text"
                 required
                 value={username}
@@ -141,6 +143,8 @@ export function AuthModal() {
             </label>
             <div style={{ position: 'relative' }}>
               <input
+                id="auth-password"
+                data-testid="auth-password"
                 type="password"
                 required
                 value={password}
@@ -154,6 +158,8 @@ export function AuthModal() {
           </div>
 
           <button
+            id="auth-submit-btn"
+            data-testid="auth-submit-btn"
             type="submit"
             disabled={loading}
             className="btn btn-primary"

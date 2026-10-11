@@ -166,6 +166,8 @@ export function Navbar({ onNavigate, currentView, activeAuctionCount = 0, onOpen
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button
+                id="nav-login-btn"
+                data-testid="nav-login-btn"
                 onClick={() => openAuth('login')}
                 className="btn btn-secondary"
                 style={{ padding: '8px 16px', fontSize: '0.88rem' }}

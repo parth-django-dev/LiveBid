@@ -32,7 +32,7 @@ def get_minimum_step(current_price):
         return 100000.0
 
 def auto_finalize_expired_item(item, now):
-    """Auto-finalize item if end_time has passed, ensuring DB consistency without Celery."""
+    """Marks item as ended in memory for the response without blocking reads on WAN DB writes."""
     if item.is_active and item.end_time <= now:
         bids = list(item.bids.all())
         if bids:
@@ -40,7 +40,6 @@ def auto_finalize_expired_item(item, now):
             item.winner = highest_bid.user
             item.current_bid = highest_bid.amount
         item.is_active = False
-        item.save(update_fields=['is_active', 'winner', 'current_bid'])
 
 # Resource Retrieval views
 def active_auctions(request):
@@ -93,7 +92,7 @@ def active_auctions(request):
     total_t = time.time() - t_start
 
     response_data = {'AuctionList': AuctionList}
-    cache.set(cache_key, response_data, timeout=3)  # 3-second TTL
+    cache.set(cache_key, response_data, timeout=5)  # 5-second TTL
 
     print(f"[PERF:active_auctions] CACHE_MISS total={total_t*1000:.1f}ms | db={t_db*1000:.1f}ms | proc={t_proc*1000:.1f}ms | items={len(items)}", flush=True)
 

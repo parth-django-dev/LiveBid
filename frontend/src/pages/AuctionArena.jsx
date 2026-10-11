@@ -295,7 +295,9 @@ export function AuctionArena({ itemId: propItemId, onBack: propOnBack }) {
       {/* Anti-Snipe Notice */}
       {antiSnipeNotice && (
         <div 
-          className="animate-slide-down"
+          id="anti-snipe-notice"
+          data-testid="anti-snipe-notice"
+          className="animate-slide-down anti-snipe-notice"
           style={{
             padding: '14px 20px',
             borderRadius: 'var(--radius-md)',
@@ -318,7 +320,9 @@ export function AuctionArena({ itemId: propItemId, onBack: propOnBack }) {
       {/* Error Toast Notification */}
       {errorToast && (
         <div 
-          className="animate-slide-down"
+          id="error-toast"
+          data-testid="error-toast"
+          className="animate-slide-down error-toast"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -613,6 +617,9 @@ export function AuctionArena({ itemId: propItemId, onBack: propOnBack }) {
 
             <div 
               ref={priceRef}
+              id="current-bid"
+              data-testid="current-bid"
+              className="current-bid"
               style={{
                 fontSize: 'clamp(2.2rem, 5vw, 3.5rem)',
                 fontWeight: '900',
@@ -728,6 +735,8 @@ export function AuctionArena({ itemId: propItemId, onBack: propOnBack }) {
               </label>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <input
+                  id="bid-amount"
+                  data-testid="bid-amount"
                   type="number"
                   value={customBid}
                   onChange={(e) => {
@@ -754,7 +763,10 @@ export function AuctionArena({ itemId: propItemId, onBack: propOnBack }) {
 
               {/* Custom In-Arena Glowing Error Feedback (Replacing ugly browser tooltip) */}
               {inputError && (
-                <div style={{
+                <div 
+                  id="input-error"
+                  data-testid="input-error"
+                  style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
@@ -774,6 +786,8 @@ export function AuctionArena({ itemId: propItemId, onBack: propOnBack }) {
               )}
 
               <button
+                id="place-bid-btn"
+                data-testid="place-bid-btn"
                 type="submit"
                 disabled={!item.is_active || !!winnerDeclared || isHighestBidder || isSeller}
                 className="btn btn-primary"
