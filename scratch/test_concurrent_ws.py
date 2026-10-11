@@ -10,7 +10,7 @@ def connect_one(i):
         ws = websocket.create_connection(
             url,
             header=["User-Agent: Mozilla/5.0"],
-            origin="https://live-bid-seven.vercel.app",
+            origin="https://live-bid-parth-django-devs-projects.vercel.app",
             timeout=15
         )
         ws.send(json.dumps({"type": "ping"}))

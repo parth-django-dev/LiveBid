@@ -1,4 +1,5 @@
 # locustfile.py
+import os
 import json
 import time
 import random
@@ -6,8 +7,8 @@ import requests
 from locust import HttpUser, task, between, events
 import websocket
 
-BASE_HTTP_URL = "https://live-bid-seven.vercel.app"
-BASE_WS_URL = "wss://livebid-ti6v.onrender.com"
+BASE_HTTP_URL = os.getenv("BASE_HTTP_URL", "https://live-bid-parth-django-devs-projects.vercel.app")
+BASE_WS_URL = os.getenv("BASE_WS_URL", "wss://livebid-ti6v.onrender.com")
 
 # Pre-created test user accounts for load testing
 # These accounts avoid hammering Django's PBKDF2 hasher during concurrent user spawns
@@ -143,7 +144,7 @@ class LiveAuctionUser(HttpUser):
             self.ws = websocket.create_connection(
                 f"{ws_url}/ws/auction/{self.item_id}/",
                 header=headers,
-                origin="https://live-bid-seven.vercel.app",
+                origin=http_url,
                 timeout=15
             )
             self.ws.settimeout(15.0)

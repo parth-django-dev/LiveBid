@@ -4,7 +4,7 @@ import concurrent.futures
 import time
 import random
 
-BASE_HTTP = "https://live-bid-seven.vercel.app"
+BASE_HTTP = "https://live-bid-parth-django-devs-projects.vercel.app"
 BASE_WS = "wss://livebid-ti6v.onrender.com"
 
 def simulate_locust_user(i):
@@ -37,7 +37,7 @@ def simulate_locust_user(i):
         ws = websocket.create_connection(
             f"{BASE_WS}/ws/auction/11/",
             header=headers,
-            origin="https://live-bid-seven.vercel.app",
+            origin="https://live-bid-parth-django-devs-projects.vercel.app",
             timeout=15
         )
         ws.send('{"type":"ping"}')

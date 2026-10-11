@@ -4,7 +4,7 @@ import concurrent.futures
 import time
 import json
 
-BASE_HTTP = "https://live-bid-seven.vercel.app"
+BASE_HTTP = "https://live-bid-parth-django-devs-projects.vercel.app"
 BASE_WS = "wss://livebid-ti6v.onrender.com"
 
 # Pre-authenticate 5 sessions
@@ -30,7 +30,7 @@ def connect_worker(i):
         ws = websocket.create_connection(
             f"{BASE_WS}/ws/auction/11/",
             header=headers,
-            origin="https://live-bid-seven.vercel.app",
+            origin="https://live-bid-parth-django-devs-projects.vercel.app",
             timeout=15
         )
         # Send ping

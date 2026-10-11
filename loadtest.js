@@ -4,9 +4,9 @@ import { check, sleep } from 'k6';
 import { Trend, Counter } from 'k6/metrics';
 
 // Target endpoints
-const REST_URL = 'https://live-bid-seven.vercel.app';
-const WS_BASE_URL = 'wss://livebid-ti6v.onrender.com';
-const ITEM_ID = 11;
+const REST_URL = __ENV.REST_URL || 'https://live-bid-parth-django-devs-projects.vercel.app';
+const WS_BASE_URL = __ENV.WS_BASE_URL || 'wss://livebid-ti6v.onrender.com';
+const ITEM_ID = __ENV.ITEM_ID ? parseInt(__ENV.ITEM_ID) : 11;
 
 // Custom Metrics
 const wsConnectDuration = new Trend('ws_connect_duration');
@@ -166,7 +166,7 @@ export function placeBids(data) {
 
   const params = {
     headers: {
-      'Origin': 'https://live-bid-seven.vercel.app',
+      'Origin': REST_URL,
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
     },
   };

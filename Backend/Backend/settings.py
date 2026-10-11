@@ -151,6 +151,7 @@ CORS_ALLOWED_ORIGINS = env.list(
         "http://localhost:8000",
         "http://127.0.0.1:8000",
         "https://live-bid-seven.vercel.app",
+        "https://live-bid-parth-django-devs-projects.vercel.app",
     ],
 )
 
@@ -168,6 +169,8 @@ CSRF_TRUSTED_ORIGINS = env.list(
         "http://127.0.0.1:8000",
         "https://*.vercel.app",
         "https://*.onrender.com",
+        "https://live-bid-seven.vercel.app",
+        "https://live-bid-parth-django-devs-projects.vercel.app",
     ],
 )
 
