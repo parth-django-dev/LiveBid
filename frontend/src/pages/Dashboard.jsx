@@ -297,40 +297,41 @@ export function Dashboard({ onSelectAuction, onOpenCreateModal }) {
 
                   {item.image ? (
                     <>
+                      {/* Ambient blurred backdrop so letterboxing matches item colors */}
+                      <img
+                        src={item.image}
+                        alt=""
+                        aria-hidden="true"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        style={{
+                          position: 'absolute',
+                          inset: '-15px',
+                          width: 'calc(100% + 30px)',
+                          height: 'calc(100% + 30px)',
+                          objectFit: 'cover',
+                          filter: 'blur(20px) brightness(0.25) saturate(1.3)',
+                          transform: 'scale(1.1)',
+                          pointerEvents: 'none',
+                          zIndex: 1,
+                        }}
+                      />
+                      {/* Fully visible item that fits completely without cropping */}
                       <img
                         src={item.image}
                         alt={item.title}
                         onError={(e) => { e.currentTarget.style.display = 'none'; }}
                         className="card-banner-img"
                         style={{
+                          position: 'relative',
+                          zIndex: 2,
                           width: '100%',
                           height: '100%',
-                          objectFit: 'cover',
-                          objectPosition: 'center',
-                          transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                          objectFit: 'contain',
+                          padding: '10px',
+                          filter: 'drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45))',
+                          transition: 'transform 0.3s ease',
                         }}
                       />
-                      {/* Top & Bottom Scrim Gradients */}
-                      <div style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        height: '75px',
-                        background: 'linear-gradient(180deg, rgba(11, 15, 25, 0.8) 0%, rgba(11, 15, 25, 0.25) 50%, transparent 100%)',
-                        zIndex: 3,
-                        pointerEvents: 'none',
-                      }} />
-                      <div style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: '60px',
-                        background: 'linear-gradient(0deg, rgba(11, 15, 25, 0.85) 0%, transparent 100%)',
-                        zIndex: 3,
-                        pointerEvents: 'none',
-                      }} />
                     </>
                   ) : (
                     <div style={{
