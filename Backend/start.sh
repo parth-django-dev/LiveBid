@@ -8,7 +8,7 @@ daphne -b 0.0.0.0 -p $PORT Backend.asgi:application &
 DAPHNE_PID=$!
 
 echo "Starting Celery worker..."
-celery -A Backend worker -l info --logfile=celery.log &
+celery -A Backend worker -l info &
 CELERY_PID=$!
 
 # Function to handle shutdown
