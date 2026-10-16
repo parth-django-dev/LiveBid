@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Flame, ArrowRight, Gavel, Sparkles, RefreshCw, Plus, 
-  Trophy, Search, X, Crown, ArrowUpDown, SlidersHorizontal, User 
+  Trophy, Search, X, Crown, ArrowUpDown, User 
 } from 'lucide-react';
 import { api } from '../api/client';
 import { CountdownTimer } from '../components/CountdownTimer';
@@ -10,10 +10,9 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('all'); // 'all' | 'live' | 'ended'
+  const [filter, setFilter] = useState('live'); // 'live' | 'ended'
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('highest_bid'); // 'highest_bid' | 'lowest_bid' | 'ending_soon' | 'newest'
-  const [priceRangeMax, setPriceRangeMax] = useState(null);
 
   const fetchAuctions = async () => {
     setLoading(true);
@@ -40,18 +39,7 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
 
   const getItemBid = (item) => Number(item?.current_bid !== undefined ? item.current_bid : item?.start_price || 0);
 
-  // Determine dynamic price range bounds from all fetched auctions
-  const absoluteMaxPrice = useMemo(() => {
-    if (!auctions || auctions.length === 0) return 50000;
-    const maxVal = Math.max(...auctions.map(getItemBid), 1000);
-    // Round up nicely to nearest 5,000 or 10,000 with minimum 50,000
-    return Math.max(Math.ceil(maxVal / 5000) * 5000, 50000);
-  }, [auctions]);
-
-  const effectiveMaxPrice = priceRangeMax !== null ? priceRangeMax : absoluteMaxPrice;
-  const priceStep = absoluteMaxPrice > 500000 ? 25000 : absoluteMaxPrice > 100000 ? 5000 : 1000;
-
-  // Filter auctions by status, search query, and current highest bid price
+  // Filter auctions by status and search query
   const filteredAuctions = useMemo(() => {
     return auctions.filter((item) => {
       const isLive = checkIsLive(item);
@@ -66,13 +54,9 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
         if (!matchTitle && !matchDesc && !matchSeller) return false;
       }
 
-      if (priceRangeMax !== null && getItemBid(item) > priceRangeMax) {
-        return false;
-      }
-
       return true;
     });
-  }, [auctions, filter, searchQuery, priceRangeMax]);
+  }, [auctions, filter, searchQuery]);
 
   // Sort according to selected sort criteria
   const sortedAuctions = useMemo(() => {
@@ -383,7 +367,6 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
               border: '1px solid var(--border-dim)',
             }}>
               {[
-                { id: 'all', label: `All (${auctions.length})` },
                 { id: 'live', label: `Live (${auctions.filter(checkIsLive).length})` },
                 { id: 'ended', label: `Ended (${auctions.filter((a) => !checkIsLive(a)).length})` },
               ].map((f) => (
@@ -394,7 +377,7 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
                     background: filter === f.id ? 'var(--primary)' : 'transparent',
                     color: filter === f.id ? '#ffffff' : 'var(--text-dim)',
                     border: 'none',
-                    padding: '6px 14px',
+                    padding: '6px 16px',
                     borderRadius: 'var(--radius-full)',
                     fontSize: '0.82rem',
                     fontWeight: '600',
@@ -410,7 +393,7 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             {/* Search Input */}
-            <div style={{ position: 'relative', width: '220px' }}>
+            <div style={{ position: 'relative', width: '240px' }}>
               <Search size={15} color="var(--text-dim)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
               <input
                 type="text"
@@ -442,26 +425,20 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
             >
               <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh
             </button>
-            <button
-              onClick={onOpenCreateModal}
-              className="btn btn-primary"
-              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
-            >
-              <Plus size={15} /> + List Item
-            </button>
           </div>
         </div>
 
-        {/* Row 2: Sort By Dropdown & Price Range Slider (Replaces Categories) */}
+        {/* Row 2: Sort By Dropdown & Catalog Summary */}
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '16px',
-          padding: '16px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '12px 18px',
           background: 'rgba(255, 255, 255, 0.02)',
           border: '1px solid var(--border-dim)',
           borderRadius: 'var(--radius-md)',
-          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
         }}>
           {/* Sort By Dropdown */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -474,7 +451,6 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
               onChange={(e) => setSortBy(e.target.value)}
               className="input-glass"
               style={{
-                flex: 1,
                 padding: '8px 14px',
                 fontSize: '0.85rem',
                 borderRadius: 'var(--radius-md)',
@@ -491,55 +467,8 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
             </select>
           </div>
 
-          {/* Price Range Slider by Current Highest Bid */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.82rem' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-dim)', fontWeight: '600' }}>
-                <SlidersHorizontal size={14} color="#34d399" />
-                <span>Max Highest Bid:</span>
-              </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontWeight: '700', color: '#34d399' }}>
-                  Up to ₹{effectiveMaxPrice.toLocaleString('en-IN')}
-                </span>
-                {priceRangeMax !== null && priceRangeMax < absoluteMaxPrice && (
-                  <button
-                    onClick={() => setPriceRangeMax(null)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#a5b4fc',
-                      cursor: 'pointer',
-                      fontSize: '0.75rem',
-                      textDecoration: 'underline',
-                    }}
-                  >
-                    Reset
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>₹0</span>
-              <input
-                type="range"
-                min="0"
-                max={absoluteMaxPrice}
-                step={priceStep}
-                value={effectiveMaxPrice}
-                onChange={(e) => setPriceRangeMax(Number(e.target.value))}
-                style={{
-                  flex: 1,
-                  accentColor: '#6366f1',
-                  cursor: 'pointer',
-                  height: '6px',
-                }}
-              />
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-                ₹{absoluteMaxPrice.toLocaleString('en-IN')}
-              </span>
-            </div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>
+            Showing <strong style={{ color: 'var(--text-main)' }}>{filteredAuctions.length}</strong> {filter} {filteredAuctions.length === 1 ? 'auction' : 'auctions'}
           </div>
         </div>
       </div>
@@ -565,22 +494,11 @@ export function AuctionCatalog({ onSelectAuction, onOpenCreateModal }) {
           <Gavel size={48} color="var(--text-dim)" style={{ marginBottom: '16px' }} />
           <h3 style={{ fontSize: '1.3rem', marginBottom: '8px' }}>No Auctions Matching Filter</h3>
           <p style={{ fontSize: '0.95rem', color: 'var(--text-dim)', marginBottom: '20px' }}>
-            {priceRangeMax !== null 
-              ? `No auctions found with highest bid under ₹${priceRangeMax.toLocaleString('en-IN')}.`
-              : filter === 'live' 
-              ? 'There are no active auctions right now.' 
-              : 'No auctions found matching criteria.'}
+            {filter === 'live' 
+              ? 'There are no active live auctions right now.' 
+              : 'No ended auctions found matching criteria.'}
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
-            {priceRangeMax !== null && (
-              <button 
-                onClick={() => setPriceRangeMax(null)} 
-                className="btn btn-secondary" 
-                style={{ padding: '10px 20px' }}
-              >
-                Reset Price Slider
-              </button>
-            )}
             <button onClick={onOpenCreateModal} className="btn btn-primary" style={{ padding: '10px 20px' }}>
               <Plus size={16} /> List a New Item
             </button>
