@@ -26,6 +26,5 @@ TESTING.md
 
 # Celery/Worker files (local use only)
 Procfile
-start.sh
 .env.example
 .env.loadtest
