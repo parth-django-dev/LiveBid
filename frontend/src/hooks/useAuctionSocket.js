@@ -7,6 +7,8 @@ export function useAuctionSocket(itemId, { onBidUpdate, onError, onAuctionEnded 
   const reconnectTimeoutRef = useRef(null);
   const pingIntervalRef = useRef(null);
   const isUnmountedRef = useRef(false);
+  const reconnectAttemptsRef = useRef(0); // Track reconnection attempts for exponential backoff
+  const bidPendingRef = useRef(false); // Prevent rapid-fire bids
 
   // Keep callback refs updated without re-triggering connect
   const onBidUpdateRef = useRef(onBidUpdate);
@@ -62,6 +64,7 @@ export function useAuctionSocket(itemId, { onBidUpdate, onError, onAuctionEnded 
         }
         setStatus('connected');
         setLastError(null);
+        reconnectAttemptsRef.current = 0; // Reset reconnection counter on successful connect
 
         // Keep-alive heartbeat every 25 seconds to prevent PgBouncer / proxy timeout
         pingIntervalRef.current = setInterval(() => {
@@ -82,10 +85,13 @@ export function useAuctionSocket(itemId, { onBidUpdate, onError, onAuctionEnded 
           if (data.type === 'pong') {
             return; // keep-alive response
           } else if (data.type === 'bid_update') {
+            bidPendingRef.current = false; // Allow next bid after response
             onBidUpdateRef.current?.(data);
           } else if (data.type === 'auction_ended') {
+            bidPendingRef.current = false;
             onAuctionEndedRef.current?.(data);
           } else if (data.type === 'error') {
+            bidPendingRef.current = false; // Allow retry after error
             setLastError(data.message);
             onErrorRef.current?.(data.message);
           }
@@ -107,13 +113,18 @@ export function useAuctionSocket(itemId, { onBidUpdate, onError, onAuctionEnded 
         if (isUnmountedRef.current) return;
         setStatus('disconnected');
 
-        // Automatically reconnect after 1.5 seconds if component is still active
+        // Exponential backoff reconnection: 1s, 2s, 4s, 8s, max 10s
+        const backoffTime = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 10000);
+        reconnectAttemptsRef.current += 1;
+
+        console.log(`WebSocket closed, reconnecting in ${backoffTime}ms (attempt ${reconnectAttemptsRef.current})`);
+
         if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
         reconnectTimeoutRef.current = setTimeout(() => {
           if (!isUnmountedRef.current) {
             connect();
           }
-        }, 1500);
+        }, backoffTime);
       };
     } catch (err) {
       setStatus('error');
@@ -169,14 +180,30 @@ export function useAuctionSocket(itemId, { onBidUpdate, onError, onAuctionEnded 
       return false;
     }
 
+    // Debounce: Prevent rapid-fire bids (minimum 200ms between bids)
+    if (bidPendingRef.current) {
+      const msg = 'Please wait for your previous bid to be processed.';
+      setLastError(msg);
+      onErrorRef.current?.(msg);
+      return false;
+    }
+
     try {
+      bidPendingRef.current = true;
       socketRef.current.send(JSON.stringify({
         type: 'bid',
         amount: Number(amount),
       }));
       setLastError(null);
+
+      // Reset pending flag after 200ms (allow new bid)
+      setTimeout(() => {
+        bidPendingRef.current = false;
+      }, 200);
+
       return true;
     } catch (err) {
+      bidPendingRef.current = false;
       setLastError(err.message);
       onErrorRef.current?.(err.message);
       return false;

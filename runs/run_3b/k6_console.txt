@@ -1,0 +1,202 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: scaled_loadtest.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 5 max VUs, 35s max duration (incl. graceful stop):
+              * livebid_loadtest: 5 looping VUs for 30s (gracefulStop: 5s)
+
+time="2026-10-16T23:30:34+05:30" level=info msg="======================================================================" source=console
+time="2026-10-16T23:30:34+05:30" level=info msg="Starting LiveBid Load Test: Target 5 VUs, Duration 30s" source=console
+time="2026-10-16T23:30:34+05:30" level=info msg="Force Auction ID: 1" source=console
+time="2026-10-16T23:30:34+05:30" level=info msg="Endpoints: REST=http://127.0.0.1:8000 | WS=ws://127.0.0.1:8000" source=console
+time="2026-10-16T23:30:34+05:30" level=info msg="======================================================================" source=console
+
+Run                [ 100% ] setup()
+livebid_loadtest   [   0% ]
+
+running (02.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [   3% ] 5 VUs  01.0s/30s
+
+running (03.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [   7% ] 5 VUs  02.0s/30s
+
+running (04.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  10% ] 5 VUs  03.0s/30s
+
+running (05.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  13% ] 5 VUs  04.0s/30s
+
+running (06.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  17% ] 5 VUs  05.0s/30s
+time="2026-10-16T23:30:41+05:30" level=info msg="CONFIRMED vu=2 auction=1 user=loadtest_user_0002 amount=50500 ts=2026-10-16T18:00:41.074Z" source=console
+time="2026-10-16T23:30:41+05:30" level=info msg="CONFIRMED vu=5 auction=1 user=loadtest_user_0005 amount=50800 ts=2026-10-16T18:00:41.080Z" source=console
+
+running (07.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  20% ] 5 VUs  06.0s/30s
+
+running (08.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  23% ] 5 VUs  07.0s/30s
+
+running (09.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  27% ] 5 VUs  08.0s/30s
+time="2026-10-16T23:30:43+05:30" level=info msg="CONFIRMED vu=3 auction=1 user=loadtest_user_0003 amount=51500 ts=2026-10-16T18:00:43.754Z" source=console
+
+running (10.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  30% ] 5 VUs  09.0s/30s
+
+running (11.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  33% ] 5 VUs  10.0s/30s
+
+running (12.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  37% ] 5 VUs  11.0s/30s
+
+running (13.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  40% ] 5 VUs  12.0s/30s
+time="2026-10-16T23:30:47+05:30" level=info msg="CONFIRMED vu=1 auction=1 user=loadtest_user_0001 amount=52000 ts=2026-10-16T18:00:47.471Z" source=console
+
+running (14.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  43% ] 5 VUs  13.0s/30s
+time="2026-10-16T23:30:49+05:30" level=info msg="CONFIRMED vu=2 auction=1 user=loadtest_user_0002 amount=52500 ts=2026-10-16T18:00:49.015Z" source=console
+time="2026-10-16T23:30:49+05:30" level=info msg="CONFIRMED vu=4 auction=1 user=loadtest_user_0004 amount=52800 ts=2026-10-16T18:00:49.015Z" source=console
+
+running (15.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  47% ] 5 VUs  14.0s/30s
+
+running (16.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  50% ] 5 VUs  15.0s/30s
+
+running (17.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  53% ] 5 VUs  16.0s/30s
+
+running (18.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  57% ] 5 VUs  17.0s/30s
+
+running (19.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  60% ] 5 VUs  18.0s/30s
+
+running (20.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  63% ] 5 VUs  19.0s/30s
+time="2026-10-16T23:30:54+05:30" level=info msg="CONFIRMED vu=3 auction=1 user=loadtest_user_0003 amount=54000 ts=2026-10-16T18:00:54.419Z" source=console
+time="2026-10-16T23:30:54+05:30" level=info msg="[UNMATCHED] VU 5: type=bid_update for me, amount=53500.0, inflight=none" source=console
+
+running (21.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  67% ] 5 VUs  20.0s/30s
+
+running (22.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  70% ] 5 VUs  21.0s/30s
+
+running (23.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  73% ] 5 VUs  22.0s/30s
+time="2026-10-16T23:30:58+05:30" level=info msg="CONFIRMED vu=2 auction=1 user=loadtest_user_0002 amount=54600 ts=2026-10-16T18:00:58.190Z" source=console
+
+running (24.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  77% ] 5 VUs  23.0s/30s
+
+running (25.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  80% ] 5 VUs  24.0s/30s
+
+running (26.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  83% ] 5 VUs  25.0s/30s
+time="2026-10-16T23:31:00+05:30" level=info msg="CONFIRMED vu=4 auction=1 user=loadtest_user_0004 amount=55200 ts=2026-10-16T18:01:00.466Z" source=console
+time="2026-10-16T23:31:00+05:30" level=info msg="CONFIRMED vu=1 auction=1 user=loadtest_user_0001 amount=55800 ts=2026-10-16T18:01:00.467Z" source=console
+
+running (27.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  87% ] 5 VUs  26.0s/30s
+
+running (28.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  90% ] 5 VUs  27.0s/30s
+
+running (29.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  93% ] 5 VUs  28.0s/30s
+time="2026-10-16T23:31:04+05:30" level=info msg="CONFIRMED vu=3 auction=1 user=loadtest_user_0003 amount=56300 ts=2026-10-16T18:01:04.134Z" source=console
+
+running (30.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [  97% ] 5 VUs  29.0s/30s
+
+running (31.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest   [ 100% ] 5 VUs  30.0s/30s
+
+running (32.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest ↓ [ 100% ] 5 VUs  30s
+time="2026-10-16T23:31:07+05:30" level=info msg="CONFIRMED vu=5 auction=1 user=loadtest_user_0005 amount=57600 ts=2026-10-16T18:01:07.361Z" source=console
+
+running (33.0s), 5/5 VUs, 0 complete and 0 interrupted iterations
+livebid_loadtest ↓ [ 100% ] 5 VUs  30s
+
+running (34.0s), 2/5 VUs, 3 complete and 0 interrupted iterations
+livebid_loadtest ↓ [ 100% ] 5 VUs  30s
+time="2026-10-16T23:31:09+05:30" level=info msg="\n======================================================================\nLIVEBID LOAD TEST ACCOUNTING & PERFORMANCE SUMMARY\n======================================================================\nTarget VUs: 5 | Duration: 30s\nWebSocket Connections: OK=5, Fail=0, Errors=0, Disconnects=5\n----------------------------------------------------------------------\nBids Sent:               44\nBids Confirmed:          12\nBids Rejected Total:     29\n  - Min Increment:       11\n  - Bid Too Low:         14\n  - Already Highest:     4\n  - Already Ended:       0\n  - Other:               0\nBids Timed Out (5s):     1\nBids Aborted (at close): 2\nBids Unmatched:          1\nBids Skipped (Inflight): 36\nBids Skipped (Self):     17\n----------------------------------------------------------------------\nACCOUNTING CHECK: sent == confirmed + rejected + timeout + aborted\n  44 == 12 + 29 + 1 + 2 (resolved: 44)\n  Result: PASS (Difference: 0)\n----------------------------------------------------------------------\nLATENCY (bid_to_broadcast_ms):\n  Sample Count: 12\n  p50: 1569.5 ms\n  p95: 2695.5 ms\n  p99: 2976.7 ms\n----------------------------------------------------------------------\nPER-AUCTION ACCEPTED BIDS:\n  Auction #01: 12 confirmed\n  Auction #02: 0 confirmed\n  Auction #03: 0 confirmed\n  Auction #04: 0 confirmed\n  Auction #05: 0 confirmed\n  Auction #06: 0 confirmed\n  Auction #07: 0 confirmed\n  Auction #08: 0 confirmed\n  Auction #09: 0 confirmed\n  Auction #10: 0 confirmed\n  Auction #11: 0 confirmed\n  Auction #12: 0 confirmed\n  Auction #13: 0 confirmed\n  Auction #14: 0 confirmed\n  Auction #15: 0 confirmed\n  Auction #16: 0 confirmed\n  Auction #17: 0 confirmed\n  Auction #18: 0 confirmed\n  Auction #19: 0 confirmed\n  Auction #20: 0 confirmed\n----------------------------------------------------------------------\nPER-VU BREAKDOWN:\nVU   | Connected? | Bids Sent | Bids Confirmed | Recv Updates\n-----+------------+-----------+----------------+-------------\n1    | YES        | 9         | 2              | 11\n2    | YES        | 9         | 3              | 11\n3    | YES        | 9         | 3              | 12\n4    | YES        | 9         | 2              | 10\n5    | YES        | 8         | 2              | 12\n======================================================================\n" source=console
+
+======================================================================
+LIVEBID LOAD TEST ACCOUNTING & PERFORMANCE SUMMARY
+======================================================================
+Target VUs: 5 | Duration: 30s
+WebSocket Connections: OK=5, Fail=0, Errors=0, Disconnects=5
+----------------------------------------------------------------------
+Bids Sent:               44
+Bids Confirmed:          12
+Bids Rejected Total:     29
+  - Min Increment:       11
+  - Bid Too Low:         14
+  - Already Highest:     4
+  - Already Ended:       0
+  - Other:               0
+Bids Timed Out (5s):     1
+Bids Aborted (at close): 2
+Bids Unmatched:          1
+Bids Skipped (Inflight): 36
+Bids Skipped (Self):     17
+----------------------------------------------------------------------
+ACCOUNTING CHECK: sent == confirmed + rejected + timeout + aborted
+  44 == 12 + 29 + 1 + 2 (resolved: 44)
+  Result: PASS (Difference: 0)
+----------------------------------------------------------------------
+LATENCY (bid_to_broadcast_ms):
+  Sample Count: 12
+  p50: 1569.5 ms
+  p95: 2695.5 ms
+  p99: 2976.7 ms
+----------------------------------------------------------------------
+PER-AUCTION ACCEPTED BIDS:
+  Auction #01: 12 confirmed
+  Auction #02: 0 confirmed
+  Auction #03: 0 confirmed
+  Auction #04: 0 confirmed
+  Auction #05: 0 confirmed
+  Auction #06: 0 confirmed
+  Auction #07: 0 confirmed
+  Auction #08: 0 confirmed
+  Auction #09: 0 confirmed
+  Auction #10: 0 confirmed
+  Auction #11: 0 confirmed
+  Auction #12: 0 confirmed
+  Auction #13: 0 confirmed
+  Auction #14: 0 confirmed
+  Auction #15: 0 confirmed
+  Auction #16: 0 confirmed
+  Auction #17: 0 confirmed
+  Auction #18: 0 confirmed
+  Auction #19: 0 confirmed
+  Auction #20: 0 confirmed
+----------------------------------------------------------------------
+PER-VU BREAKDOWN:
+VU   | Connected? | Bids Sent | Bids Confirmed | Recv Updates
+-----+------------+-----------+----------------+-------------
+1    | YES        | 9         | 2              | 11
+2    | YES        | 9         | 3              | 11
+3    | YES        | 9         | 3              | 12
+4    | YES        | 9         | 2              | 10
+5    | YES        | 8         | 2              | 12
+======================================================================
+
+running (34.7s), 0/5 VUs, 5 complete and 0 interrupted iterations
+livebid_loadtest ✓ [ 100% ] 5 VUs  30s
+time="2026-10-16T23:31:09+05:30" level=error msg="thresholds on metrics 'bid_to_broadcast_ms' have been crossed"

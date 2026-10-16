@@ -1,247 +1,97 @@
 {
-    "metrics": {
-        "ws_msgs_received": {
-            "count": 137,
-            "rate": 2.3412066826692643
-        },
-        "data_received": {
-            "count": 840035,
-            "rate": 14355.442012234127
-        },
-        "ws_session_duration": {
-            "min": 3097.1603,
-            "med": 4017.4982,
-            "max": 5994.082,
-            "p(90)": 5796.95876,
-            "p(95)": 5902.4309,
-            "avg": 4228.759715199999
-        },
-        "http_req_duration{name:auction_details}": {
-            "max": 6703.9271,
-            "p(90)": 6242.96461,
-            "p(95)": 6687.3233549999995,
-            "avg": 3056.35152,
-            "min": 695.4761,
-            "med": 2754.2355,
-            "thresholds": {
-                "p(95)<12000": false
-            }
-        },
-        "http_req_receiving": {
-            "avg": 1.9053244186046512,
-            "min": 0,
-            "med": 0.16145,
-            "max": 15.7315,
-            "p(90)": 6.3073,
-            "p(95)": 7.87945
-        },
-        "ws_connecting": {
-            "med": 1515.7861,
-            "max": 3488.9909,
-            "p(90)": 3293.1173,
-            "p(95)": 3401.4056,
-            "avg": 1726.7289719999992,
-            "min": 595.7913
-        },
-        "iterations": {
-            "count": 165,
-            "rate": 2.819701479127216
-        },
-        "http_req_waiting": {
-            "avg": 3601.8189697674397,
-            "min": 694.6289,
-            "med": 3090.0926499999996,
-            "max": 7117.1757,
-            "p(90)": 6687.62965,
-            "p(95)": 6764.101175
-        },
-        "http_req_duration{expected_response:true}": {
-            "med": 3093.4512,
-            "max": 7117.1757,
-            "p(90)": 6688.12935,
-            "p(95)": 6765.9251,
-            "avg": 3604.3557220930234,
-            "min": 695.4761
-        },
-        "http_reqs": {
-            "count": 86,
-            "rate": 1.469662589120852
-        },
-        "http_req_failed": {
-            "passes": 0,
-            "fails": 86,
-            "value": 0
-        },
-        "ws_msgs_sent": {
-            "count": 207,
-            "rate": 3.5374436738141437
-        },
-        "iteration_duration": {
-            "avg": 5718.250950909093,
-            "min": 3597.8792,
-            "med": 4693.3919,
-            "max": 12789.7922,
-            "p(90)": 10708.7363,
-            "p(95)": 12491.14286
-        },
-        "http_req_duration{name:active_auctions}": {
-            "avg": 4181.9175925,
-            "min": 1591.7689,
-            "med": 4022.6159,
-            "max": 7117.1757,
-            "p(90)": 6786.35575,
-            "p(95)": 6807.911805,
-            "thresholds": {
-                "p(95)<12000": false
-            }
-        },
-        "ws_connect_duration": {
-            "avg": 1727.328,
-            "min": 596,
-            "med": 1515,
-            "max": 3489,
-            "p(90)": 3296.4,
-            "p(95)": 3402,
-            "thresholds": {
-                "p(95)<3500": false
-            }
-        },
-        "ws_sessions": {
-            "count": 125,
-            "rate": 2.1361374841872847
-        },
-        "ws_ping_roundtrip": {
-            "avg": 1318.0853658536585,
-            "min": 114,
-            "med": 898,
-            "max": 2498,
-            "p(90)": 2301.9,
-            "p(95)": 2484.4000000000005,
-            "thresholds": {
-                "p(95)<1500": true
-            }
-        },
-        "http_req_tls_handshaking": {
-            "max": 226.7404,
-            "p(90)": 159.25745,
-            "p(95)": 193.97820000000002,
-            "avg": 23.712953488372094,
-            "min": 0,
-            "med": 0
-        },
-        "http_req_blocked": {
-            "med": 0,
-            "max": 306.5276,
-            "p(90)": 242.1432,
-            "p(95)": 271.39110000000005,
-            "avg": 34.08597209302326,
-            "min": 0
-        },
-        "http_req_connecting": {
-            "avg": 9.343875581395348,
-            "min": 0,
-            "med": 0,
-            "max": 78.5015,
-            "p(90)": 65.1507,
-            "p(95)": 76.8291
-        },
-        "ws_bid_roundtrip": {
-            "avg": 950.1578947368421,
-            "min": 114,
-            "med": 1100,
-            "max": 1603,
-            "p(90)": 1534.6,
-            "p(95)": 1561.6
-        },
-        "ws_bids_processed": {
-            "rate": 0.3246928975964673,
-            "count": 19
-        },
-        "vus_max": {
-            "value": 30,
-            "min": 30,
-            "max": 30
-        },
-        "checks": {
-            "passes": 342,
-            "fails": 0,
-            "thresholds": {
-                "rate>0.90": false
-            },
-            "value": 1
-        },
-        "http_req_duration": {
-            "p(95)": 6765.9251,
-            "avg": 3604.3557220930234,
-            "min": 695.4761,
-            "med": 3093.4512,
-            "max": 7117.1757,
-            "p(90)": 6688.12935
-        },
-        "data_sent": {
-            "count": 287101,
-            "rate": 4906.2976627812295
-        },
-        "vus": {
-            "value": 4,
-            "min": 0,
-            "max": 30
-        },
-        "http_req_sending": {
-            "max": 13.5099,
-            "p(90)": 0.7616,
-            "p(95)": 1.531625,
-            "avg": 0.6314279069767444,
-            "min": 0,
-            "med": 0.3482
-        }
+  "target_vus": 5,
+  "duration": "30s",
+  "accounting": {
+    "sent": 58,
+    "confirmed": 16,
+    "rejected_total": 39,
+    "rejected_by_reason": {
+      "min_increment": 13,
+      "bid_too_low": 25,
+      "already_highest": 1,
+      "already_ended": 0,
+      "other": 0
     },
-    "setup_data": {
-        "minStep": 500,
-        "sessions": [
-            "bm62bltwalyrnwy4iccchkqn31k7qphy",
-            "stcf93mowxfg5mxp57pgyti5nv7kjzmn",
-            "ieqe45n1nwk7rom5ryuwtj5h5tfkjvx4",
-            "adlwgknd6yocg2ppja8362r4ypjj2t17",
-            "9cdqf1pk28tpml5prz0fltenq5c0djla"
-        ],
-        "baseBid": 82500,
-        "itemId": 11
+    "timeout": 2,
+    "aborted": 1,
+    "resolved": 58,
+    "diff": 0,
+    "pass": true
+  },
+  "unmatched": 2,
+  "skipped": {
+    "inflight": 15,
+    "self": 23
+  },
+  "websocket": {
+    "connect_ok": 5,
+    "connect_fail": 0,
+    "errors": 0,
+    "disconnects": 5
+  },
+  "latency_ms": {
+    "sample_count": 16,
+    "p50": 351.5,
+    "p95": 2196.25,
+    "p99": 4174.449999999999
+  },
+  "per_auction": {
+    "1": 16,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0,
+    "8": 0,
+    "9": 0,
+    "10": 0,
+    "11": 0,
+    "12": 0,
+    "13": 0,
+    "14": 0,
+    "15": 0,
+    "16": 0,
+    "17": 0,
+    "18": 0,
+    "19": 0,
+    "20": 0
+  },
+  "per_vu": [
+    {
+      "vu": 1,
+      "connected": "YES",
+      "bids_sent": 12,
+      "bids_confirmed": 2,
+      "updates_received": 15
     },
-    "root_group": {
-        "groups": {},
-        "checks": {
-                "active_auctions status is 200": {
-                    "path": "::active_auctions status is 200",
-                    "id": "efaa5bde00a6d20ca1e2935f1c04f377",
-                    "passes": 40,
-                    "fails": 0,
-                    "name": "active_auctions status is 200"
-                },
-                "WS connected (101)": {
-                    "name": "WS connected (101)",
-                    "path": "::WS connected (101)",
-                    "id": "0c603a4abcad8aa992085347f3f509b8",
-                    "passes": 125,
-                    "fails": 0
-                },
-                "received WS frame": {
-                    "passes": 137,
-                    "fails": 0,
-                    "name": "received WS frame",
-                    "path": "::received WS frame",
-                    "id": "18493d93061f6ece4bfc1fae7e9a18db"
-                },
-                "auction_details status is 200": {
-                    "name": "auction_details status is 200",
-                    "path": "::auction_details status is 200",
-                    "id": "16804241c4abe1047639c3a6527601e9",
-                    "passes": 40,
-                    "fails": 0
-                }
-            },
-        "name": "",
-        "path": "",
-        "id": "d41d8cd98f00b204e9800998ecf8427e"
+    {
+      "vu": 2,
+      "connected": "YES",
+      "bids_sent": 12,
+      "bids_confirmed": 3,
+      "updates_received": 16
+    },
+    {
+      "vu": 3,
+      "connected": "YES",
+      "bids_sent": 9,
+      "bids_confirmed": 6,
+      "updates_received": 16
+    },
+    {
+      "vu": 4,
+      "connected": "YES",
+      "bids_sent": 13,
+      "bids_confirmed": 2,
+      "updates_received": 15
+    },
+    {
+      "vu": 5,
+      "connected": "YES",
+      "bids_sent": 12,
+      "bids_confirmed": 3,
+      "updates_received": 16
     }
+  ]
 }

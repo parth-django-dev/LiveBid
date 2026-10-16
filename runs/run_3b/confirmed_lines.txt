@@ -1,0 +1,13 @@
+time="2026-10-16T23:30:41+05:30" level=info msg="CONFIRMED vu=2 auction=1 user=loadtest_user_0002 amount=50500 ts=2026-10-16T18:00:41.074Z" source=console
+time="2026-10-16T23:30:41+05:30" level=info msg="CONFIRMED vu=5 auction=1 user=loadtest_user_0005 amount=50800 ts=2026-10-16T18:00:41.080Z" source=console
+time="2026-10-16T23:30:43+05:30" level=info msg="CONFIRMED vu=3 auction=1 user=loadtest_user_0003 amount=51500 ts=2026-10-16T18:00:43.754Z" source=console
+time="2026-10-16T23:30:47+05:30" level=info msg="CONFIRMED vu=1 auction=1 user=loadtest_user_0001 amount=52000 ts=2026-10-16T18:00:47.471Z" source=console
+time="2026-10-16T23:30:49+05:30" level=info msg="CONFIRMED vu=2 auction=1 user=loadtest_user_0002 amount=52500 ts=2026-10-16T18:00:49.015Z" source=console
+time="2026-10-16T23:30:49+05:30" level=info msg="CONFIRMED vu=4 auction=1 user=loadtest_user_0004 amount=52800 ts=2026-10-16T18:00:49.015Z" source=console
+time="2026-10-16T23:30:54+05:30" level=info msg="CONFIRMED vu=3 auction=1 user=loadtest_user_0003 amount=54000 ts=2026-10-16T18:00:54.419Z" source=console
+time="2026-10-16T23:30:54+05:30" level=info msg="[UNMATCHED] VU 5: type=bid_update for me, amount=53500.0, inflight=none" source=console
+time="2026-10-16T23:30:58+05:30" level=info msg="CONFIRMED vu=2 auction=1 user=loadtest_user_0002 amount=54600 ts=2026-10-16T18:00:58.190Z" source=console
+time="2026-10-16T23:31:00+05:30" level=info msg="CONFIRMED vu=4 auction=1 user=loadtest_user_0004 amount=55200 ts=2026-10-16T18:01:00.466Z" source=console
+time="2026-10-16T23:31:00+05:30" level=info msg="CONFIRMED vu=1 auction=1 user=loadtest_user_0001 amount=55800 ts=2026-10-16T18:01:00.467Z" source=console
+time="2026-10-16T23:31:04+05:30" level=info msg="CONFIRMED vu=3 auction=1 user=loadtest_user_0003 amount=56300 ts=2026-10-16T18:01:04.134Z" source=console
+time="2026-10-16T23:31:07+05:30" level=info msg="CONFIRMED vu=5 auction=1 user=loadtest_user_0005 amount=57600 ts=2026-10-16T18:01:07.361Z" source=console

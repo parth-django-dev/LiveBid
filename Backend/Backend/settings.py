@@ -98,11 +98,12 @@ if REDIS_URL:
                     {
                         "address": REDIS_URL,
                         "health_check_interval": 30,
-                        "socket_timeout": 30,
+                        "socket_timeout": 10,  # Reduced from 30s to fail fast
+                        "socket_connect_timeout": 5,
                         "retry_on_timeout": True,
                     }
                 ],
-                "capacity": 1500,
+                "capacity": 3000,  # Increased from 1500 for higher concurrency
                 "expiry": 60,
             },
         },
@@ -116,9 +117,12 @@ else:
                     {
                         "host": "127.0.0.1",
                         "port": 6379,
-                        "socket_timeout": None,
+                        "socket_timeout": 5,
+                        "socket_connect_timeout": 2,
                     }
                 ],
+                "capacity": 3000,
+                "expiry": 60,
             },
         },
     }
@@ -282,3 +286,14 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
+
+# SSL configuration for Celery when using rediss:// (Upstash)
+if _celery_broker.startswith('rediss://'):
+    CELERY_BROKER_USE_SSL = True
+    CELERY_BROKER_TRANSPORT_OPTIONS = {
+        'ssl_cert_reqs': 'none'
+    }
+if _celery_backend.startswith('rediss://'):
+    CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {
+        'ssl_cert_reqs': 'none'
+    }

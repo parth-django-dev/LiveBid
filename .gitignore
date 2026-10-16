@@ -17,3 +17,15 @@ node_modules/
 
 .locust_sessions.json
 .concurrency_sessions.json
+
+# Documentation files (local use only)
+PERFORMANCE_OPTIMIZATION.md
+CELERY_CONFIG_FIX.md
+CHANGES_SUMMARY.md
+TESTING.md
+
+# Celery/Worker files (local use only)
+Procfile
+start.sh
+.env.example
+.env.loadtest
