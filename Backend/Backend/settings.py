@@ -280,6 +280,15 @@ if is_on_render and os.getenv('REDIS_URL'):
     if '127.0.0.1' in _celery_backend or 'localhost' in _celery_backend:
         _celery_backend = os.getenv('REDIS_URL')
 
+# Fix Celery SSL requirement for Upstash (rediss://)
+if _celery_broker.startswith('rediss://') and 'ssl_cert_reqs' not in _celery_broker:
+    sep = '&' if '?' in _celery_broker else '?'
+    _celery_broker = f"{_celery_broker}{sep}ssl_cert_reqs=CERT_NONE"
+
+if _celery_backend.startswith('rediss://') and 'ssl_cert_reqs' not in _celery_backend:
+    sep = '&' if '?' in _celery_backend else '?'
+    _celery_backend = f"{_celery_backend}{sep}ssl_cert_reqs=CERT_NONE"
+
 CELERY_BROKER_URL = _celery_broker
 CELERY_RESULT_BACKEND = _celery_backend
 CELERY_ACCEPT_CONTENT = ['json']
