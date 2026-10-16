@@ -95,7 +95,8 @@ def reconcile():
         redis_bid = None
         if r:
             try:
-                cached = r.get(f"auction:{item_id}:highest_bid")
+                redis_prefix = os.getenv("REDIS_KEY_PREFIX", "")
+                cached = r.get(f"{redis_prefix}auction:{item_id}:highest_bid")
                 redis_bid = float(cached) if cached else None
             except Exception:
                 pass

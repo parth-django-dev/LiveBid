@@ -219,8 +219,9 @@ class AuctionConsumer(AsyncWebsocketConsumer):
         try:
             self.item_id = self.scope['url_route']['kwargs']['item_id']
             self.group_name = f'auction_{self.item_id}'
-            self.redis_bid_key = f'auction:{self.item_id}:highest_bid'
-            self.redis_bidder_key = f'auction:{self.item_id}:highest_bidder'
+            redis_prefix = os.getenv("REDIS_KEY_PREFIX", "")
+            self.redis_bid_key = f'{redis_prefix}auction:{self.item_id}:highest_bid'
+            self.redis_bidder_key = f'{redis_prefix}auction:{self.item_id}:highest_bidder'
             self.redis = redis_client
 
             # Accept WebSocket handshake immediately (< 5ms response time)

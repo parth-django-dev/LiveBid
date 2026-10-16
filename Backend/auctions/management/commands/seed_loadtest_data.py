@@ -134,9 +134,10 @@ class Command(BaseCommand):
 
                 if redis_client:
                     try:
-                        redis_client.set(f"auction:{item.id}:highest_bid", str(start_price))
-                        redis_client.delete(f"auction:{item.id}:highest_bidder")
-                        redis_client.delete(f"auction_details_{item.id}")
+                        redis_prefix = os.getenv("REDIS_KEY_PREFIX", "")
+                        redis_client.set(f"{redis_prefix}auction:{item.id}:highest_bid", str(start_price))
+                        redis_client.delete(f"{redis_prefix}auction:{item.id}:highest_bidder")
+                        redis_client.delete(f"{redis_prefix}auction_details_{item.id}")
                     except Exception as e:
                         self.stdout.write(self.style.WARNING(f"Redis reset error for item {item.id}: {e}"))
 
