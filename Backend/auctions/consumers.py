@@ -47,26 +47,6 @@ async def redis_operation_with_retry(operation, max_retries=3, backoff=0.1):
 AUCTION_METADATA_CACHE = {}
 USER_SESSION_CACHE = {}
 
-def load_cached_test_sessions():
-    try:
-        from django.conf import settings
-        cfg_path = os.path.join(settings.BASE_DIR.parent, "loadtest_config.json")
-        if os.path.exists(cfg_path):
-            with open(cfg_path, "r") as f:
-                cfg = json.load(f)
-            from django.contrib.auth.models import User
-            user_map = {u.id: u for u in User.objects.filter(username__startswith="loadtest_user_")}
-            for u in cfg.get("users", []):
-                sid = u.get("sessionid")
-                uid = u.get("user_id")
-                if sid and uid in user_map:
-                    USER_SESSION_CACHE[sid] = user_map[uid]
-            print(f"[CACHE] Pre-cached {len(USER_SESSION_CACHE)} load test sessions.")
-    except Exception as e:
-        pass
-
-load_cached_test_sessions()
-
 def get_minimum_step(current_price):
     price = float(current_price)
     if price < 1000:

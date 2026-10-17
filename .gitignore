@@ -1,30 +1,22 @@
-# .gitignore
+# Environments and secrets
 .env
 .venv/
+env/
+venv/
+
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 db.sqlite3
+
+# Media and static
 media/
 Backend/media/
+staticfiles/
 
-# Playwright
+# Frontend / Node
 node_modules/
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
-/playwright/.auth/
-
-.locust_sessions.json
-.concurrency_sessions.json
-
-# Documentation files (local use only)
-PERFORMANCE_OPTIMIZATION.md
-CELERY_CONFIG_FIX.md
-CHANGES_SUMMARY.md
-TESTING.md
-
-# Celery/Worker files (local use only)
-Procfile
-.env.example
-.env.loadtest
+dist/
+.DS_Store
